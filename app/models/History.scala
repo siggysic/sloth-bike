@@ -10,4 +10,3 @@ case class History(id: UUID, fine: Int, remark: String,
 
 case class payment(studentId: String, returnStatus: String, fine1: Int, fine2: Int, note: String)
 
-case class
