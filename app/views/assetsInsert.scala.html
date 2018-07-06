@@ -1,0 +1,112 @@
+@(form: Form[Asset], fields: AssetFields)(implicit assetsFinder: AssetsFinder)
+
+@validateClass(field: String) = @{
+  if(form.errors.find(_.key == field).nonEmpty){"is-invalid"}
+  else ""
+}
+
+@main("MU Sloth Bike", assetsFinder) {
+
+    <div class="card border-dark mb-3">
+        <h5 class="card-header">New Asset</h5>
+        <div class="card-body">
+            @helper.form(action = routes.AssetsController.insertAssets()) {
+                <div class="form-row">
+                    <div class="form-group col-md-4">
+                      <label>Date</label>
+                      <input name="@fields.date" type="date" class="form-control @validateClass(fields.date)" placeholder="Date">
+                      @if(form.errors.find(_.key == fields.date).nonEmpty) {
+                        <div class="invalid-feedback">
+                          @form.errors(fields.date).map(_.message)
+                        </div>
+                      }
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                      <label>หมายเลขล็อต</label>
+                      <input name="@fields.slot_number" type="text" class="form-control @validateClass(fields.slot_number)" placeholder="หมายเลขล็อต">
+                      @if(form.errors.find(_.key == fields.slot_number).nonEmpty) {
+                        <div class="invalid-feedback">
+                        @form.errors(fields.slot_number).map(_.message)
+                        </div>
+                      }
+                    </div>
+                </div>
+                <div class="form-group">
+                  <label>Detail</label>
+                  <input name="@fields.detail" type="text" class="form-control @validateClass(fields.detail)" placeholder="Detail">
+                  @if(form.errors.find(_.key == fields.detail).nonEmpty) {
+                    <div class="invalid-feedback">
+                    @form.errors(fields.detail).map(_.message)
+                    </div>
+                  }
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                      <label>เลขครุภัณฑ์</label>
+                      <input name="@fields.number_of_pieces" type="text" class="form-control @validateClass(fields.number_of_pieces)" placeholder="หมายเลขล็อต">
+                      @if(form.errors.find(_.key == fields.number_of_pieces).nonEmpty) {
+                        <div class="invalid-feedback">
+                          @form.errors(fields.number_of_pieces).map(_.message)
+                        </div>
+                      }
+                    </div>
+                    <div class="form-group col-md-6">
+                      <label>ป้ายทะเบียน</label>
+                      <input name="@fields.license_plate" type="text" class="form-control @validateClass(fields.license_plate)" placeholder="ป้ายทะเบียน">
+                      @if(form.errors.find(_.key == fields.license_plate).nonEmpty) {
+                        <div class="invalid-feedback">
+                        @form.errors(fields.license_plate).map(_.message)
+                        </div>
+                      }
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                      <label>Key barcode</label>
+                      <input name="@fields.key_barcode" type="text" class="form-control @validateClass(fields.key_barcode)" placeholder="Key barcode">
+                      @if(form.errors.find(_.key == fields.key_barcode).nonEmpty) {
+                        <div class="invalid-feedback">
+                        @form.errors(fields.key_barcode).map(_.message)
+                        </div>
+                      }
+                    </div>
+                    <div class="form-group col-md-6">
+                      <label>RFID</label>
+                      <input name="@fields.rfid" type="text" class="form-control @validateClass(fields.rfid)" placeholder="RFID">
+                      @if(form.errors.find(_.key == fields.rfid).nonEmpty) {
+                        <div class="invalid-feedback">
+                        @form.errors(fields.rfid).map(_.message)
+                        </div>
+                      }
+                    </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group col-md-3">
+                    <label>Stations</label>
+                    <select name="@fields.station" class="form-control @validateClass(fields.station)">
+                      <option selected>q</option>
+                      <option>w</option>
+                      <option>e</option>
+                    </select>
+                    @if(form.errors.find(_.key == fields.station).nonEmpty) {
+                      <div class="invalid-feedback">
+                      @form.errors(fields.station).map(_.message)
+                      </div>
+                    }
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group col-md-2">
+                    <button type="submit" class="btn btn-primary btn-block">Submit</button>
+                  </div>
+                    <div class="form-group col-md-2">
+                      <button type="button" class="btn btn-danger btn-block">Cancel</button>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+}
