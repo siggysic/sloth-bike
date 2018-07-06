@@ -54,6 +54,7 @@ CREATE TABLE histories (
     ReturnDate TIMESTAMP,
     CreatedAt TIMESTAMP,
     UpdatedAt TIMESTAMP,
+    StationId INT,
     StatusId INT NOT NULL,
     BikeId VARCHAR(255) NOT NULL,
     PaymentId VARCHAR(255),
@@ -62,6 +63,9 @@ CREATE TABLE histories (
     INDEX (PaymentId),
     FOREIGN KEY (StatusId)
       REFERENCES bike_status(Id)
+      ON UPDATE CASCADE,
+    FOREIGN KEY (StationId)
+      REFERENCES stations(Id)
       ON UPDATE CASCADE,
     FOREIGN KEY (BikeId)
       REFERENCES bikes(Id)

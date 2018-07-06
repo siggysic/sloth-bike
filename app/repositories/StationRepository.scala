@@ -32,4 +32,9 @@ class StationRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
     val action = stations.map(_.name).returning(stations.map(_.id)) += name
     db.run(action)
   }
+
+  def getStations(name: String) = {
+    val action = stations.result
+    db.run(action)
+  }
 }
