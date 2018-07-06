@@ -12,6 +12,7 @@ GET     /message                    controllers.AsyncController.message
 # View
 + nocsrf
 POST    /asset                      controllers.AssetsController.insertAssets
+GET     /assets                     controllers.AssetsController.viewAssets
 GET     /assets/insert              controllers.AssetsController.viewInsertAssets
 
 # Map static resources from the /public folder to the /assets URL path

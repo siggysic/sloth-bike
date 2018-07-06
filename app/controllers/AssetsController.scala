@@ -19,6 +19,7 @@ class AssetsController @Inject()(cc: ControllerComponents) (implicit assetsFinde
       "license_plate" -> text.verifying(Contraints.validateText),
       "key_barcode" -> text.verifying(Contraints.validateText),
       "rfid" -> text.verifying(Contraints.validateText),
+      "status" -> text.verifying(Contraints.validateText),
       "station" -> text.verifying(Contraints.validateText)
     )(Asset.apply)(Asset.unapply)
   )
@@ -29,6 +30,10 @@ class AssetsController @Inject()(cc: ControllerComponents) (implicit assetsFinde
     Ok(views.html.assetsInsert(form, fields))
   }
 
+  def viewAssets = Action {
+    Ok(views.html.assets(Nil, fields))
+  }
+
   def insertAssets = Action { implicit request: Request[AnyContent] =>
 
     val errorFunction = { formWithErrors: Form[Asset] =>
@@ -36,7 +41,7 @@ class AssetsController @Inject()(cc: ControllerComponents) (implicit assetsFinde
     }
 
     val successFunction = { data: Asset =>
-      Ok(views.html.assetsInsert(form, fields))
+      Ok(views.html.assets(Nil, fields))
     }
 
 

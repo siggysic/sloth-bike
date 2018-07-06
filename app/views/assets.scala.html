@@ -1,6 +1,80 @@
-@(message: String)(implicit assetsFinder: AssetsFinder)
+@(assets: List[Asset], fields: AssetFields)(implicit assetsFinder: AssetsFinder)
+
 @main("MU Sloth Bike", assetsFinder) {
 
-@welcome(message, style = "scala")
+  <div class="card border-secondary mb-3" style="max-width: 18rem;">
+    <div class="card-header">Asset List</div>
+    <div class="card-body text-secondary">
+      <div class="form-row">
+        <div class="form-group col-md-4">
+          <label>เลขครุภัณฑ์</label>
+          <input name="@fields.number_of_pieces" type="text" class="form-control" placeholder="หมายเลขล็อต">
+        </div>
+        <div class="form-group col-md-4">
+          <label>ป้ายทะเบียน</label>
+          <input name="@fields.license_plate" type="text" class="form-control" placeholder="ป้ายทะเบียน">
+        </div>
+        <div class="form-group col-md-4">
+          <label>Status</label>
+          <input name="@fields.status" type="text" class="form-control" placeholder="Status">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group col-md-4">
+          <label>Key Barcode</label>
+          <input name="@fields.key_barcode" type="text" class="form-control" placeholder="Key Barcode">
+        </div>
+        <div class="form-group col-md-4">
+          <label>RFID</label>
+          <input name="@fields.rfid" type="text" class="form-control" placeholder="RFID">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group col-md-4">
+          <label>หมายเลขล็อต</label>
+          <input name="@fields.slot_number" type="text" class="form-control" placeholder="หมายเลขล็อต">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group col-md-8"></div>
+        <div class="form-group col-md-2">
+          <button type="button" class="btn btn-primary btn-block">Search</button>
+        </div>
+        <div class="form-group col-md-2">
+          <button type="button" class="btn btn-danger btn-block">Reset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  @*<table class="table table-hover table-dark">*@
+    @*<thead>*@
+      @*<tr>*@
+        @*<th scope="col">#</th>*@
+        @*<th scope="col">First</th>*@
+        @*<th scope="col">Last</th>*@
+        @*<th scope="col">Handle</th>*@
+      @*</tr>*@
+    @*</thead>*@
+    @*<tbody>*@
+      @*<tr>*@
+        @*<th scope="row">1</th>*@
+        @*<td>Mark</td>*@
+        @*<td>Otto</td>*@
+        @*<td>@mdo</td>*@
+      @*</tr>*@
+      @*<tr>*@
+        @*<th scope="row">2</th>*@
+        @*<td>Jacob</td>*@
+        @*<td>Thornton</td>*@
+        @*<td>@fat</td>*@
+      @*</tr>*@
+      @*<tr>*@
+        @*<th scope="row">3</th>*@
+        @*<td colspan="2">Larry the Bird</td>*@
+        @*<td>@twitter</td>*@
+      @*</tr>*@
+    @*</tbody>*@
+  </table>
 
 }

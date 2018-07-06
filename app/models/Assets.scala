@@ -8,6 +8,7 @@ case class Asset (
                    license_plate: String,
                    key_barcode: String,
                    rfid: String,
+                   status: String,
                    station: String
                  )
 
@@ -19,5 +20,6 @@ case class AssetFields(
                        license_plate: String = "license_plate",
                        key_barcode: String = "key_barcode",
                        rfid: String = "rfid",
+                       status: String = "status",
                        station: String = "station"
                      )

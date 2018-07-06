@@ -5,6 +5,10 @@
   else ""
 }
 
+@getValue(field: String) = @{
+  form(field).value.getOrElse("")
+}
+
 @main("MU Sloth Bike", assetsFinder) {
 
     <div class="card border-dark mb-3">
@@ -14,7 +18,7 @@
                 <div class="form-row">
                     <div class="form-group col-md-4">
                       <label>Date</label>
-                      <input name="@fields.date" type="date" class="form-control @validateClass(fields.date)" placeholder="Date">
+                      <input name="@fields.date" type="date" class="form-control @validateClass(fields.date)" placeholder="Date" value="@getValue(fields.date)">
                       @if(form.errors.find(_.key == fields.date).nonEmpty) {
                         <div class="invalid-feedback">
                           @form.errors(fields.date).map(_.message)
@@ -25,17 +29,17 @@
                 <div class="form-row">
                     <div class="form-group col-md-6">
                       <label>หมายเลขล็อต</label>
-                      <input name="@fields.slot_number" type="text" class="form-control @validateClass(fields.slot_number)" placeholder="หมายเลขล็อต">
+                      <input name="@fields.slot_number" type="text" class="form-control @validateClass(fields.slot_number)" placeholder="หมายเลขล็อต" value="@getValue(fields.slot_number)">
                       @if(form.errors.find(_.key == fields.slot_number).nonEmpty) {
                         <div class="invalid-feedback">
-                        @form.errors(fields.slot_number).map(_.message)
+                          @form.errors(fields.slot_number).map(_.message)
                         </div>
                       }
                     </div>
                 </div>
                 <div class="form-group">
                   <label>Detail</label>
-                  <input name="@fields.detail" type="text" class="form-control @validateClass(fields.detail)" placeholder="Detail">
+                  <input name="@fields.detail" type="text" class="form-control @validateClass(fields.detail)" placeholder="Detail" value="@getValue(fields.detail)">
                   @if(form.errors.find(_.key == fields.detail).nonEmpty) {
                     <div class="invalid-feedback">
                     @form.errors(fields.detail).map(_.message)
@@ -45,7 +49,7 @@
                 <div class="form-row">
                     <div class="form-group col-md-6">
                       <label>เลขครุภัณฑ์</label>
-                      <input name="@fields.number_of_pieces" type="text" class="form-control @validateClass(fields.number_of_pieces)" placeholder="หมายเลขล็อต">
+                      <input name="@fields.number_of_pieces" type="text" class="form-control @validateClass(fields.number_of_pieces)" placeholder="เลขครุภัณฑ์" value="@getValue(fields.number_of_pieces)">
                       @if(form.errors.find(_.key == fields.number_of_pieces).nonEmpty) {
                         <div class="invalid-feedback">
                           @form.errors(fields.number_of_pieces).map(_.message)
@@ -54,7 +58,7 @@
                     </div>
                     <div class="form-group col-md-6">
                       <label>ป้ายทะเบียน</label>
-                      <input name="@fields.license_plate" type="text" class="form-control @validateClass(fields.license_plate)" placeholder="ป้ายทะเบียน">
+                      <input name="@fields.license_plate" type="text" class="form-control @validateClass(fields.license_plate)" placeholder="ป้ายทะเบียน" value="@getValue(fields.license_plate)">
                       @if(form.errors.find(_.key == fields.license_plate).nonEmpty) {
                         <div class="invalid-feedback">
                         @form.errors(fields.license_plate).map(_.message)
@@ -65,7 +69,7 @@
                 <div class="form-row">
                     <div class="form-group col-md-6">
                       <label>Key barcode</label>
-                      <input name="@fields.key_barcode" type="text" class="form-control @validateClass(fields.key_barcode)" placeholder="Key barcode">
+                      <input name="@fields.key_barcode" type="text" class="form-control @validateClass(fields.key_barcode)" placeholder="Key barcode" value="@getValue(fields.key_barcode)">
                       @if(form.errors.find(_.key == fields.key_barcode).nonEmpty) {
                         <div class="invalid-feedback">
                         @form.errors(fields.key_barcode).map(_.message)
@@ -74,7 +78,7 @@
                     </div>
                     <div class="form-group col-md-6">
                       <label>RFID</label>
-                      <input name="@fields.rfid" type="text" class="form-control @validateClass(fields.rfid)" placeholder="RFID">
+                      <input name="@fields.rfid" type="text" class="form-control @validateClass(fields.rfid)" placeholder="RFID" value="@getValue(fields.rfid)">
                       @if(form.errors.find(_.key == fields.rfid).nonEmpty) {
                         <div class="invalid-feedback">
                         @form.errors(fields.rfid).map(_.message)
@@ -84,8 +88,21 @@
                 </div>
                 <div class="form-row">
                   <div class="form-group col-md-3">
+                    <label>Status</label>
+                    <select name="@fields.status" class="form-control @validateClass(fields.status)" value="@getValue(fields.status)">
+                      <option selected>q</option>
+                      <option>w</option>
+                      <option>e</option>
+                    </select>
+                    @if(form.errors.find(_.key == fields.status).nonEmpty) {
+                      <div class="invalid-feedback">
+                      @form.errors(fields.status).map(_.message)
+                      </div>
+                    }
+                  </div>
+                  <div class="form-group col-md-3">
                     <label>Stations</label>
-                    <select name="@fields.station" class="form-control @validateClass(fields.station)">
+                    <select name="@fields.station" class="form-control @validateClass(fields.station)" value="@getValue(fields.station)">
                       <option selected>q</option>
                       <option>w</option>
                       <option>e</option>
@@ -101,9 +118,9 @@
                   <div class="form-group col-md-2">
                     <button type="submit" class="btn btn-primary btn-block">Submit</button>
                   </div>
-                    <div class="form-group col-md-2">
-                      <button type="button" class="btn btn-danger btn-block">Cancel</button>
-                    </div>
+                  <div class="form-group col-md-2">
+                    <button type="button" class="btn btn-danger btn-block">Cancel</button>
+                  </div>
                 </div>
             }
         </div>
