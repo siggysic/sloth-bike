@@ -17,6 +17,7 @@ CREATE TABLE bikes (
     LotNo VARCHAR(255),
     Remark VARCHAR(255),
     Detail VARCHAR(255),
+    ArrivalDate TIMESTAMP NOT NULL,
     CreatedAt TIMESTAMP,
     UpdatedAt TIMESTAMP,
     StatusId INT NOT NULL,

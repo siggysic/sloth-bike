@@ -19,13 +19,14 @@ trait BikeComponent extends BikeStatusComponent with StationComponent { self: Ha
     def licensePlate = column[String]("LicensePlate")
     def remark = column[Option[String]]("Remark")
     def detail = column[Option[String]]("Detail")
+    def arrivalDate = column[Timestamp]("ArrivalDate")
     def createdAt = column[Timestamp]("CreatedAt")
     def updatedAt = column[Timestamp]("UpdatedAt")
     def statusId = column[Int]("StatusId")
     def stationId = column[Int]("StationId")
 
     def * =
-      (id, keyBarcode, referenceId, licensePlate, lotNo, remark, detail, createdAt, updatedAt, statusId) <> ((Bike.apply _).tupled, Bike.unapply)
+      (id, keyBarcode, referenceId, licensePlate, lotNo, remark, detail, arrivalDate, createdAt, updatedAt, statusId) <> ((Bike.apply _).tupled, Bike.unapply)
 
     def status = foreignKey("Status", statusId, TableQuery[BikeStatusTable])(_.id, onUpdate = ForeignKeyAction.Cascade)
     def station = foreignKey("Station", statusId, TableQuery[Stations])(_.id, onUpdate = ForeignKeyAction.Cascade)
