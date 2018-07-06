@@ -2,6 +2,10 @@ package models
 
 import java.sql.Timestamp
 
-case class Bike(id: String, keyBarcode: String, referenceId: String,
-                licensePlate: String, remark: String, detail: String,
-                createdAt: Timestamp, updatedAt: Timestamp, statusId: Int)
+case class Bike(id: String, keyBarcode: Option[String], referenceId: String, lotNo: String,
+                licensePlate: String, remark: Option[String], detail: Option[String],
+                createdAt: Timestamp = new Timestamp(System.currentTimeMillis()),
+                updatedAt: Timestamp = new Timestamp(System.currentTimeMillis()),
+                statusId: Int)
+
+case class BikeQuery(statusId: Option[Int], page: Int, pageSize: Int)
