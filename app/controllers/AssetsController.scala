@@ -52,10 +52,11 @@ class AssetsController @Inject()(cc: ControllerComponents, bikeRepo: BikeReposit
     } yield Ok(views.html.assetsInsert(bikeForm, fields, bStatus, st))
   }
 
-  def viewAssets(page: Int = pageSize.page, size: Int = pageSize.size) = Action.async {
-    bikeRepo.getBikesRelational(BikeQuery(None, page, size)).map{ bikes =>
-      Ok(views.html.assets(bikes, fields, pageSize.copy(page, size)))
-    }
+  def viewAssets(page: Int = pageSize.page) = Action.async {
+    for {
+      bikes <- bikeRepo.getBikesRelational(BikeQuery(None, page, pageSize.size))
+      status <- bikeStatusRepository.getStatus
+    } yield Ok(views.html.assets(bikes, fields, pageSize.copy(page = page), status))
   }
 
   def insertAssets = Action.async { implicit request: Request[AnyContent] =>
@@ -69,9 +70,10 @@ class AssetsController @Inject()(cc: ControllerComponents, bikeRepo: BikeReposit
 
     val successFunction = { data: BikeRequest =>
       bikeRepo.create(data.toBike).flatMap {
-        case 1 =>  bikeRepo.getBikesRelational(BikeQuery(None, pageSize.page, pageSize.size)).map { bikes =>
-          Ok(views.html.assets(bikes, fields, pageSize))
-        }
+        case 1 =>  for {
+          bikes <- bikeRepo.getBikesRelational(BikeQuery(None, pageSize.page, pageSize.size))
+          status <- bikeStatusRepository.getStatus
+        } yield Ok(views.html.assets(bikes, fields, pageSize, status))
         case _ => Future.successful(BadRequest(views.html.exception("Database exception.")))
       }
     }

@@ -6,6 +6,7 @@ import javax.inject.{Inject, Singleton}
 import models._
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.JdbcProfile
+import slick.lifted.QueryBase
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -65,16 +66,32 @@ class BikeRepository @Inject() (protected val dbConfigProvider: DatabaseConfigPr
     db.run(action)
   }
 
-  def getBikesRelational(query: BikeQuery): Future[Seq[(Int, Bike, BikeStatus, Station)]] = {
-    val total = bike.length
-    val validateStatusId = query.statusId match {
-      case Some(statusId) =>
-        bike.filter(_.statusId === statusId)
-      case None => bike
-    }
+  def getBikesRelational(query: BikeQuery): Future[Seq[(Int, Bike, BikeStatus, Station)]] =
+    getBikePagination(bike, query)
 
-    val offset = (query.page - 1) * query.pageSize
-    val bikePagination = validateStatusId.drop(offset).take(query.pageSize)
+  def searchBikes(bikeSearch: BikeSearch, bikeQuery: BikeQuery) = {
+
+    val convert = (opt: Option[Any]) => opt.map(o => s"%$o%").getOrElse("%%")
+
+    val querySearch = bike
+      .filter(_.pieceNo like(convert(bikeSearch.pieceNo)))
+      .filter(_.lotNo like(convert(bikeSearch.lotNo)))
+      .filter(_.licensePlate like(convert(bikeSearch.licensePlate)))
+      .filter(_.keyBarcode like(convert(bikeSearch.keyBarcode)))
+      .filter(_.referenceId like(convert(bikeSearch.referenceId)))
+
+    val querySearchWithStatus = if(bikeSearch.statusId.nonEmpty) querySearch.filter(_.statusId === bikeSearch.statusId.get)
+    else querySearch
+
+    getBikePagination(querySearchWithStatus, bikeQuery)
+  }
+
+  private def getBikePagination(query: Query[Bikes, Bikes#TableElementType, Seq], bikeQuery: BikeQuery) = {
+
+    val total = query.length
+
+    val offset = (bikeQuery.page - 1) * bikeQuery.pageSize
+    val bikePagination = query.drop(offset).take(bikeQuery.pageSize)
 
     val action =  for {
       ((b, bs), s) <- bikePagination join status on (_.statusId === _.id) join station on (_._1.stationId === _.id)
@@ -82,20 +99,4 @@ class BikeRepository @Inject() (protected val dbConfigProvider: DatabaseConfigPr
 
     db.run(action.result)
   }
-
-//  def searchBikes(bikeSearch: BikeSearch, bikeQuery: BikeQuery) = {
-//
-//    val convert = (opt: Option[Any]) => opt.map(o => s"%$o%").getOrElse("%%")
-//
-//    val action = bike
-//      .filter(_.pieceNo like(convert(bikeSearch.pieceNo)))
-//      .filter(_.lotNo like(convert(bikeSearch.lotNo)))
-//      .filter(_.licensePlate like(convert(bikeSearch.licensePlate)))
-//      .filter(_.keyBarcode like(convert(bikeSearch.keyBarcode)))
-//      .filter(_.referenceId like(convert(bikeSearch.referenceId)))
-//
-//    if(bikeSearch.statusId.nonEmpty) db.run(action.filter(_.statusId === bikeSearch.statusId.getOrElse("")).result)
-//
-//    db.run(action.result)
-//  }
 }

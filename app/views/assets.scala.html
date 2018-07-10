@@ -1,4 +1,4 @@
-@(assets: Seq[(Int, Bike, BikeStatus, Station)], fields: BikeFields, pageSize: PageSize)(implicit assetsFinder: AssetsFinder)
+@(assets: Seq[(Int, Bike, BikeStatus, Station)], fields: BikeFields, pageSize: PageSize, status: Seq[BikeStatus])(implicit assetsFinder: AssetsFinder)
 
 @main("MU Sloth Bike", assetsFinder) {
 
@@ -17,7 +17,11 @@
         </div>
         <div class="form-group col-md-4">
           <label>Status</label>
-          <input name="@fields.statusId" type="text" class="form-control" placeholder="Status">
+          <select name="@fields.statusId" class="form-control">
+          @status.map { bs =>
+            <option value="@bs.id">@bs.status</option>
+          }
+          </select>
         </div>
       </div>
       <div class="form-row">
@@ -49,17 +53,19 @@
     </div>
   </div>
 
-  @table(pageSize, assets.headOption.map(_._1).getOrElse(0)) {
-    @assets.map { asset =>
-      <tr>
-        <td>@asset._2.pieceNo</td>
-        <td>@asset._2.keyBarcode</td>
-        <td>@asset._2.licensePlate</td>
-        <td>@asset._2.referenceId</td>
-        <td>@asset._3.status</td>
-        <td>@asset._2.remark</td>
-      </tr>
-    }
+  @table(pageSize, assets.headOption.map(_._1).getOrElse(0),
+    routes.AssetsController.viewAssets(pageSize.page-1), routes.AssetsController.viewAssets(pageSize.page+1)) {
+
+      @assets.map { asset =>
+        <tr>
+          <td>@asset._2.pieceNo</td>
+          <td>@asset._2.keyBarcode</td>
+          <td>@asset._2.licensePlate</td>
+          <td>@asset._2.referenceId</td>
+          <td>@asset._3.status</td>
+          <td>@asset._2.remark</td>
+        </tr>
+      }
   }
 
 }
