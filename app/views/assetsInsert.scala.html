@@ -1,4 +1,4 @@
-@(form: Form[Asset], fields: AssetFields)(implicit assetsFinder: AssetsFinder)
+@(form: Form[BikeRequest], fields: BikeFields, bikesStatus: Seq[BikeStatus], stations: Seq[Station])(implicit assetsFinder: AssetsFinder)
 
 @validateClass(field: String) = @{
   if(form.errors.find(_.key == field).nonEmpty){"is-invalid"}
@@ -18,10 +18,10 @@
                 <div class="form-row">
                     <div class="form-group col-md-4">
                       <label>Date</label>
-                      <input name="@fields.date" type="date" class="form-control @validateClass(fields.date)" placeholder="Date" value="@getValue(fields.date)">
-                      @if(form.errors.find(_.key == fields.date).nonEmpty) {
+                      <input name="@fields.arrivalDate" type="date" class="form-control @validateClass(fields.arrivalDate)" placeholder="Date" value="@getValue(fields.arrivalDate)">
+                      @if(form.errors.find(_.key == fields.arrivalDate).nonEmpty) {
                         <div class="invalid-feedback">
-                          @form.errors(fields.date).map(_.message)
+                          @form.errors(fields.arrivalDate).map(_.message)
                         </div>
                       }
                     </div>
@@ -29,10 +29,10 @@
                 <div class="form-row">
                     <div class="form-group col-md-6">
                       <label>หมายเลขล็อต</label>
-                      <input name="@fields.slot_number" type="text" class="form-control @validateClass(fields.slot_number)" placeholder="หมายเลขล็อต" value="@getValue(fields.slot_number)">
-                      @if(form.errors.find(_.key == fields.slot_number).nonEmpty) {
+                      <input name="@fields.lotNo" type="text" class="form-control @validateClass(fields.lotNo)" placeholder="หมายเลขล็อต" value="@getValue(fields.lotNo)">
+                      @if(form.errors.find(_.key == fields.lotNo).nonEmpty) {
                         <div class="invalid-feedback">
-                          @form.errors(fields.slot_number).map(_.message)
+                          @form.errors(fields.lotNo).map(_.message)
                         </div>
                       }
                     </div>
@@ -49,19 +49,19 @@
                 <div class="form-row">
                     <div class="form-group col-md-6">
                       <label>เลขครุภัณฑ์</label>
-                      <input name="@fields.number_of_pieces" type="text" class="form-control @validateClass(fields.number_of_pieces)" placeholder="เลขครุภัณฑ์" value="@getValue(fields.number_of_pieces)">
-                      @if(form.errors.find(_.key == fields.number_of_pieces).nonEmpty) {
+                      <input name="@fields.pieceNo" type="text" class="form-control @validateClass(fields.pieceNo)" placeholder="เลขครุภัณฑ์" value="@getValue(fields.pieceNo)">
+                      @if(form.errors.find(_.key == fields.pieceNo).nonEmpty) {
                         <div class="invalid-feedback">
-                          @form.errors(fields.number_of_pieces).map(_.message)
+                          @form.errors(fields.pieceNo).map(_.message)
                         </div>
                       }
                     </div>
                     <div class="form-group col-md-6">
                       <label>ป้ายทะเบียน</label>
-                      <input name="@fields.license_plate" type="text" class="form-control @validateClass(fields.license_plate)" placeholder="ป้ายทะเบียน" value="@getValue(fields.license_plate)">
-                      @if(form.errors.find(_.key == fields.license_plate).nonEmpty) {
+                      <input name="@fields.licensePlate" type="text" class="form-control @validateClass(fields.licensePlate)" placeholder="ป้ายทะเบียน" value="@getValue(fields.licensePlate)">
+                      @if(form.errors.find(_.key == fields.licensePlate).nonEmpty) {
                         <div class="invalid-feedback">
-                        @form.errors(fields.license_plate).map(_.message)
+                        @form.errors(fields.licensePlate).map(_.message)
                         </div>
                       }
                     </div>
@@ -69,19 +69,19 @@
                 <div class="form-row">
                     <div class="form-group col-md-6">
                       <label>Key barcode</label>
-                      <input name="@fields.key_barcode" type="text" class="form-control @validateClass(fields.key_barcode)" placeholder="Key barcode" value="@getValue(fields.key_barcode)">
-                      @if(form.errors.find(_.key == fields.key_barcode).nonEmpty) {
+                      <input name="@fields.keyBarcode" type="text" class="form-control @validateClass(fields.keyBarcode)" placeholder="Key barcode" value="@getValue(fields.keyBarcode)">
+                      @if(form.errors.find(_.key == fields.keyBarcode).nonEmpty) {
                         <div class="invalid-feedback">
-                        @form.errors(fields.key_barcode).map(_.message)
+                        @form.errors(fields.keyBarcode).map(_.message)
                         </div>
                       }
                     </div>
                     <div class="form-group col-md-6">
                       <label>RFID</label>
-                      <input name="@fields.rfid" type="text" class="form-control @validateClass(fields.rfid)" placeholder="RFID" value="@getValue(fields.rfid)">
-                      @if(form.errors.find(_.key == fields.rfid).nonEmpty) {
+                      <input name="@fields.referenceId" type="text" class="form-control @validateClass(fields.referenceId)" placeholder="RFID" value="@getValue(fields.referenceId)">
+                      @if(form.errors.find(_.key == fields.referenceId).nonEmpty) {
                         <div class="invalid-feedback">
-                        @form.errors(fields.rfid).map(_.message)
+                        @form.errors(fields.referenceId).map(_.message)
                         </div>
                       }
                     </div>
@@ -89,27 +89,27 @@
                 <div class="form-row">
                   <div class="form-group col-md-3">
                     <label>Status</label>
-                    <select name="@fields.status" class="form-control @validateClass(fields.status)" value="@getValue(fields.status)">
-                      <option selected>q</option>
-                      <option>w</option>
-                      <option>e</option>
+                    <select name="@fields.statusId" class="form-control @validateClass(fields.statusId)" value="@getValue(fields.statusId)">
+                      @bikesStatus.map { bs =>
+                        <option value="@bs.id">@bs.status</option>
+                      }
                     </select>
-                    @if(form.errors.find(_.key == fields.status).nonEmpty) {
+                    @if(form.errors.find(_.key == fields.statusId).nonEmpty) {
                       <div class="invalid-feedback">
-                      @form.errors(fields.status).map(_.message)
+                      @form.errors(fields.statusId).map(_.message)
                       </div>
                     }
                   </div>
                   <div class="form-group col-md-3">
                     <label>Stations</label>
-                    <select name="@fields.station" class="form-control @validateClass(fields.station)" value="@getValue(fields.station)">
-                      <option selected>q</option>
-                      <option>w</option>
-                      <option>e</option>
+                    <select name="@fields.stationId" class="form-control @validateClass(fields.stationId)" value="@getValue(fields.stationId)">
+                      @stations.map { s =>
+                        <option value="@s.id">@s.name, @s.location</option>
+                      }
                     </select>
-                    @if(form.errors.find(_.key == fields.station).nonEmpty) {
+                    @if(form.errors.find(_.key == fields.stationId).nonEmpty) {
                       <div class="invalid-feedback">
-                      @form.errors(fields.station).map(_.message)
+                      @form.errors(fields.stationId).map(_.message)
                       </div>
                     }
                   </div>

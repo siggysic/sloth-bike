@@ -38,7 +38,7 @@ class StationRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
   def getStations(query: StationQuery): Future[(Seq[(Int, String, String, Int)], Int)] = {
     val filterByName = query.name match {
       case Some(name) => stations.filter(_.name like s"%$name%")
-      case None       => stations
+      case None => stations
     }
 
     val joinBikes = filterByName.joinLeft(bikes).on(_.id === _.stationId)
@@ -50,7 +50,7 @@ class StationRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
 
     val filterByAvailable = query.available match {
       case Some(available) => joinBikes.filter(_._4 === available)
-      case None            => joinBikes
+      case None => joinBikes
     }
 
     val summary = filterByAvailable.drop((query.page - 1) * query.pageSize).take(query.pageSize)
@@ -58,5 +58,10 @@ class StationRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
     val totalAction = filterByAvailable.sortBy(_._1).length.result
     val action = summary.result
     db.run(action).flatMap(s => db.run(totalAction).map(total => (s, total)))
+  }
+
+  def getStations: Future[Seq[Station]] = {
+    val action = stations.result
+    db.run(action)
   }
 }

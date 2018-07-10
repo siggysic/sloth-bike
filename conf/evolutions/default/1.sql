@@ -11,12 +11,14 @@ CREATE TABLE bike_status (
 
 CREATE TABLE bikes (
     Id VARCHAR(255) NOT NULL PRIMARY KEY,
+    PieceNo VARCHAR(255),
     KeyBarcode VARCHAR(255),
     ReferenceId VARCHAR(255),
     LicensePlate VARCHAR(255),
     LotNo VARCHAR(255),
     Remark VARCHAR(255),
     Detail VARCHAR(255),
+    ArrivalDate TIMESTAMP NOT NULL,
     CreatedAt TIMESTAMP,
     UpdatedAt TIMESTAMP,
     StatusId INT NOT NULL,
@@ -54,6 +56,7 @@ CREATE TABLE histories (
     ReturnDate TIMESTAMP,
     CreatedAt TIMESTAMP,
     UpdatedAt TIMESTAMP,
+    StationId INT,
     StatusId INT NOT NULL,
     BikeId VARCHAR(255) NOT NULL,
     PaymentId VARCHAR(255),
@@ -62,6 +65,9 @@ CREATE TABLE histories (
     INDEX (PaymentId),
     FOREIGN KEY (StatusId)
       REFERENCES bike_status(Id)
+      ON UPDATE CASCADE,
+    FOREIGN KEY (StationId)
+      REFERENCES stations(Id)
       ON UPDATE CASCADE,
     FOREIGN KEY (BikeId)
       REFERENCES bikes(Id)

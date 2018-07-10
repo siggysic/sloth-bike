@@ -1,38 +1,39 @@
-@(assets: List[Asset], fields: AssetFields)(implicit assetsFinder: AssetsFinder)
+@(assets: Seq[(Int, Bike, BikeStatus, Station)], fields: BikeFields, pageSize: PageSize)(implicit assetsFinder: AssetsFinder)
 
 @main("MU Sloth Bike", assetsFinder) {
 
   <div class="card border-secondary mb-3" style="max-width: 18rem;">
     <div class="card-header">Asset List</div>
     <div class="card-body text-secondary">
+    @helper.form(action = routes.AssetsController.searchAssets()) {
       <div class="form-row">
         <div class="form-group col-md-4">
           <label>เลขครุภัณฑ์</label>
-          <input name="@fields.number_of_pieces" type="text" class="form-control" placeholder="หมายเลขล็อต">
+          <input name="@fields.pieceNo" type="text" class="form-control" placeholder="หมายเลขล็อต">
         </div>
         <div class="form-group col-md-4">
           <label>ป้ายทะเบียน</label>
-          <input name="@fields.license_plate" type="text" class="form-control" placeholder="ป้ายทะเบียน">
+          <input name="@fields.licensePlate" type="text" class="form-control" placeholder="ป้ายทะเบียน">
         </div>
         <div class="form-group col-md-4">
           <label>Status</label>
-          <input name="@fields.status" type="text" class="form-control" placeholder="Status">
+          <input name="@fields.statusId" type="text" class="form-control" placeholder="Status">
         </div>
       </div>
       <div class="form-row">
         <div class="form-group col-md-4">
           <label>Key Barcode</label>
-          <input name="@fields.key_barcode" type="text" class="form-control" placeholder="Key Barcode">
+          <input name="@fields.keyBarcode" type="text" class="form-control" placeholder="Key Barcode">
         </div>
         <div class="form-group col-md-4">
           <label>RFID</label>
-          <input name="@fields.rfid" type="text" class="form-control" placeholder="RFID">
+          <input name="@fields.referenceId" type="text" class="form-control" placeholder="RFID">
         </div>
       </div>
       <div class="form-row">
         <div class="form-group col-md-4">
           <label>หมายเลขล็อต</label>
-          <input name="@fields.slot_number" type="text" class="form-control" placeholder="หมายเลขล็อต">
+          <input name="@fields.lotNo" type="text" class="form-control" placeholder="หมายเลขล็อต">
         </div>
       </div>
       <div class="form-row">
@@ -44,37 +45,21 @@
           <button type="button" class="btn btn-danger btn-block">Reset</button>
         </div>
       </div>
+    }
     </div>
   </div>
 
-  @*<table class="table table-hover table-dark">*@
-    @*<thead>*@
-      @*<tr>*@
-        @*<th scope="col">#</th>*@
-        @*<th scope="col">First</th>*@
-        @*<th scope="col">Last</th>*@
-        @*<th scope="col">Handle</th>*@
-      @*</tr>*@
-    @*</thead>*@
-    @*<tbody>*@
-      @*<tr>*@
-        @*<th scope="row">1</th>*@
-        @*<td>Mark</td>*@
-        @*<td>Otto</td>*@
-        @*<td>@mdo</td>*@
-      @*</tr>*@
-      @*<tr>*@
-        @*<th scope="row">2</th>*@
-        @*<td>Jacob</td>*@
-        @*<td>Thornton</td>*@
-        @*<td>@fat</td>*@
-      @*</tr>*@
-      @*<tr>*@
-        @*<th scope="row">3</th>*@
-        @*<td colspan="2">Larry the Bird</td>*@
-        @*<td>@twitter</td>*@
-      @*</tr>*@
-    @*</tbody>*@
-  </table>
+  @table(pageSize, assets.headOption.map(_._1).getOrElse(0)) {
+    @assets.map { asset =>
+      <tr>
+        <td>@asset._2.pieceNo</td>
+        <td>@asset._2.keyBarcode</td>
+        <td>@asset._2.licensePlate</td>
+        <td>@asset._2.referenceId</td>
+        <td>@asset._3.status</td>
+        <td>@asset._2.remark</td>
+      </tr>
+    }
+  }
 
 }
