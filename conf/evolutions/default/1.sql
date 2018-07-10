@@ -11,6 +11,7 @@ CREATE TABLE bike_status (
 
 CREATE TABLE bikes (
     Id VARCHAR(255) NOT NULL PRIMARY KEY,
+    PieceNo VARCHAR(255),
     KeyBarcode VARCHAR(255),
     ReferenceId VARCHAR(255),
     LicensePlate VARCHAR(255),

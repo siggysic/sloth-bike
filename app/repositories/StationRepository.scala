@@ -5,7 +5,7 @@ import models.Station
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.JdbcProfile
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 
 trait StationComponent { self: HasDatabaseConfigProvider[JdbcProfile] =>
@@ -14,9 +14,8 @@ trait StationComponent { self: HasDatabaseConfigProvider[JdbcProfile] =>
     def id = column[Int]("Id", O.PrimaryKey, O.AutoInc)
     def name = column[String]("Name")
     def location = column[String]("Location")
-    def password = column[String]("Password")
 
-    def * = (id, name, location, password.?) <> ((Station.apply _).tupled, Station.unapply)
+    def * = (id, name, location) <> ((Station.apply _).tupled, Station.unapply)
   }
 }
 
@@ -33,7 +32,7 @@ class StationRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
     db.run(action)
   }
 
-  def getStations(name: String) = {
+  def getStations: Future[Seq[Station]] = {
     val action = stations.result
     db.run(action)
   }

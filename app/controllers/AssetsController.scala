@@ -1,57 +1,90 @@
 package controllers
 
 import javax.inject.{Inject, _}
-import models.{Asset, AssetFields, Contraints}
+import models._
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.mvc._
+import repositories.{BikeRepository, BikeStatusRepository, StationRepository}
+
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class AssetsController @Inject()(cc: ControllerComponents) (implicit assetsFinder: AssetsFinder)
+class AssetsController @Inject()(cc: ControllerComponents, bikeRepo: BikeRepository,
+                                 bikeStatusRepository: BikeStatusRepository, stationRepository: StationRepository)
+                                (implicit assetsFinder: AssetsFinder, ec: ExecutionContext)
   extends AbstractController(cc) {
 
-  val form: Form[Asset] = Form (
+  val bikeForm: Form[BikeRequest] = Form (
     mapping(
-      "date" -> date.verifying(Contraints.validateDate),
-      "slot_number" -> text.verifying(Contraints.validateText),
-      "detail" -> text,
-      "number_of_pieces" -> text.verifying(Contraints.validateText),
-      "license_plate" -> text.verifying(Contraints.validateText),
-      "key_barcode" -> text.verifying(Contraints.validateText),
-      "rfid" -> text.verifying(Contraints.validateText),
-      "status" -> text.verifying(Contraints.validateText),
-      "station" -> text.verifying(Contraints.validateText)
-    )(Asset.apply)(Asset.unapply)
+      "keyBarcode" -> text.verifying(Contraints.validateText),
+      "referenceId" -> text.verifying(Contraints.validateText),
+      "lotNo" -> text.verifying(Contraints.validateText),
+      "licensePlate" -> text.verifying(Contraints.validateText),
+      "detail" -> optional(text),
+      "arrivalDate" -> date.verifying(Contraints.validateDate),
+      "pieceNo" -> text.verifying(Contraints.validateText),
+      "statusId" -> number,
+      "stationId" -> number
+    )(BikeRequest.apply)(BikeRequest.unapply)
   )
 
-  val fields = AssetFields()
+  val bikeSearchForm: Form[BikeSearch] = Form (
+    mapping(
+      "keyBarcode" -> optional(text),
+      "referenceId" -> optional(text),
+      "lotNo" -> optional(text),
+      "licensePlate" -> optional(text),
+      "pieceNo" -> optional(text),
+      "statusId" -> optional(number)
+    )(BikeSearch.apply)(BikeSearch.unapply)
+  )
 
-  def viewInsertAssets = Action {
-    Ok(views.html.assetsInsert(form, fields))
+  val fields = BikeFields()
+  val bikesStatus = bikeStatusRepository.getStatus
+  val stations = stationRepository.getStations
+  val pageSize = PageSize()
+
+  def viewInsertAssets = Action.async {
+    for {
+      bStatus <- bikesStatus
+      st <- stations
+    } yield Ok(views.html.assetsInsert(bikeForm, fields, bStatus, st))
   }
 
-  def viewAssets = Action {
-    Ok(views.html.assets(Nil, fields))
+  def viewAssets(page: Int = pageSize.page, size: Int = pageSize.size) = Action.async {
+    bikeRepo.getBikesRelational(BikeQuery(None, page, size)).map{ bikes =>
+      Ok(views.html.assets(bikes, fields, pageSize.copy(page, size)))
+    }
   }
 
-  def insertAssets = Action { implicit request: Request[AnyContent] =>
+  def insertAssets = Action.async { implicit request: Request[AnyContent] =>
 
-    val errorFunction = { formWithErrors: Form[Asset] =>
-      BadRequest(views.html.assetsInsert(formWithErrors, fields))
+    val errorFunction = { formWithErrors: Form[BikeRequest] =>
+      for {
+        bStatus <- bikesStatus
+        st <- stations
+      } yield BadRequest(views.html.assetsInsert(formWithErrors, fields, bStatus, st))
     }
 
-    val successFunction = { data: Asset =>
-      Ok(views.html.assets(Nil, fields))
+    val successFunction = { data: BikeRequest =>
+      bikeRepo.create(data.toBike).flatMap {
+        case 1 =>  bikeRepo.getBikesRelational(BikeQuery(None, pageSize.page, pageSize.size)).map { bikes =>
+          Ok(views.html.assets(bikes, fields, pageSize))
+        }
+        case _ => Future.successful(BadRequest(views.html.exception("Database exception.")))
+      }
     }
 
-
-    val formValidationResult: Form[Asset] = form.bindFromRequest
+    val formValidationResult: Form[BikeRequest] = bikeForm.bindFromRequest
     formValidationResult.fold(
       errorFunction,
       successFunction
     )
+  }
 
-//    Ok(views.html.assetsInsert(form))
+  def searchAssets = Action.async { implicit request: Request[AnyContent] =>
+    Future(Ok(""))
   }
 
 }

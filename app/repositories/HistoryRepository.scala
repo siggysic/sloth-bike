@@ -4,7 +4,7 @@ import java.sql.Timestamp
 import java.util.UUID
 
 import javax.inject.{Inject, Singleton}
-import models.{Bike, BikeStatus, HistoryQuery, History}
+import models._
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.JdbcProfile
 
@@ -52,7 +52,7 @@ class HistoryRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
     db.run(action)
   }
 
-  def getHistories(query: HistoryQuery): Future[Seq[(((History, Option[Bike]), Option[BikeStatus]), Option[(UUID, Option[Int])])]] = {
+  def getHistories(query: HistoryQuery): Future[Seq[((((History, Option[Bike]), Option[BikeStatus]), Option[(UUID, Option[Int])]), Option[Station])]] = {
     val queryBase = history.joinLeft(bike).on(_.bikeId === _.id)
       .joinLeft(status).on(_._1.statusId === _.id)
       .joinLeft(
