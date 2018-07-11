@@ -16,7 +16,9 @@ GET     /assets                     controllers.AssetsController.viewAssets(page
 GET     /assets/insert              controllers.AssetsController.viewInsertAssets
 POST    /assets/search              controllers.AssetsController.searchAssets
 
-GET     /stations                   controllers.StationController.viewStations(page: Int ?= 1)
+GET     /stations                   controllers.StationController.viewStations(name: Option[String] ?= None, available: Option[Int] ?= None, page: Int ?= 1)
++ nocsrf
+POST    /stations                   controllers.StationController.filterStationAction
 GET     /stations/add               controllers.StationController.viewAddStation
 
 + nocsrf

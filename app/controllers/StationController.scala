@@ -13,7 +13,16 @@ import scala.concurrent.{ExecutionContext, Future}
 class StationController @Inject()(stationRepository: StationRepository, cc: ControllerComponents)(implicit assets: AssetsFinder, ec: ExecutionContext)
   extends AbstractController(cc) {
 
-  val form: Form[Station] = Form(
+  val queryForm: Form[StationQuery] = Form(
+    mapping(
+      "name" -> optional(text),
+      "available" -> optional(number),
+      "page" -> default(number(min = 1), 1),
+      "pageSize" -> default(number, 10)
+    )(StationQuery.apply)(StationQuery.unapply)
+  )
+
+  val insertForm: Form[Station] = Form(
     mapping(
       "id" -> optional(number),
       "stationName" -> text.verifying(Contraints.validateText),
@@ -21,15 +30,41 @@ class StationController @Inject()(stationRepository: StationRepository, cc: Cont
     )(Station.apply)(Station.unapply)
   )
 
-  def viewStations(page: Int = 1) = Action.async {
-      stationRepository.getStations(StationQuery(None, None, page,1)).map { r =>
-        val (stations, totalStation) = r
-        Ok(views.html.stations(stations.map(s => StationResult(s._1, s._2, s._3, s._4)), totalStation))
-      }
+  def viewStations
+  (name: Option[String] = None, available: Option[Int] = None, page: Int = 1) = Action.async {
+
+    val actualPage = page match {
+      case p if p >= 1 => p
+      case _ => 1
+    }
+
+    val currentForm = queryForm.fill(StationQuery(name, available, actualPage))
+
+    stationRepository.getStations(StationQuery(name, available, actualPage)).map { r =>
+      val (stations, totalStation) = r
+      Ok(views.html.stations(stations.map(s => StationResult(s._1, s._2, s._3, s._4)), totalStation, currentForm))
+    }
+  }
+
+  def filterStationAction = Action { implicit request: Request[AnyContent] =>
+
+    val failureFn = { formWithError: Form[StationQuery] =>
+      val name = formWithError.data.get("name")
+      val available = formWithError.data.get("available").map(_.toInt)
+      val page = formWithError.data.get("page").map(_.toInt).getOrElse(1)
+      Redirect(routes.StationController.viewStations(name, available, page))
+    }
+
+    val successFn = { query: StationQuery =>
+      Redirect(routes.StationController.viewStations(query.name, query.available))
+    }
+
+    queryForm.bindFromRequest().fold(failureFn, successFn)
+
   }
 
   def viewAddStation = Action {
-    Ok(views.html.addStation(form))
+    Ok(views.html.addStation(insertForm))
   }
 
   def addStation = Action.async { implicit request: Request[AnyContent] =>
@@ -40,13 +75,13 @@ class StationController @Inject()(stationRepository: StationRepository, cc: Cont
 
     val success = { station: Station =>
       stationRepository.create(station).flatMap { _ =>
-        stationRepository.getStations(StationQuery(None, None, 1, 1)).map( s =>
+        stationRepository.getStations(StationQuery(None, None, 1)).map( s =>
           Redirect(routes.StationController.viewStations())
         )
       }
     }
 
-    form.bindFromRequest().fold(
+    insertForm.bindFromRequest().fold(
       failure,
       success
     )

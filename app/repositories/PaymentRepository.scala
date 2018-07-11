@@ -38,7 +38,7 @@ class PaymentRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
 
   private val payment = TableQuery[Payments]
 
-  def getPayments: Future[Seq[(UUID, Option[Int], Option[Int])]] = {
+  def getPayments(studentId: String): Future[Seq[(UUID, Option[Int], Option[Int])]] = {
     val action =
       payment.join(payment).on(_.id === _.parentId)
       .groupBy(_._1.id)
