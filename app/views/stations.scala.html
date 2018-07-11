@@ -1,9 +1,48 @@
 @(stations: Seq[StationResult], total: Int, form: Form[StationQuery])(implicit assetsFinder: AssetsFinder)
 
+@currentPage(form: Form[StationQuery]) = @{
+    val pageNo = form.data.get("page").map(_.toInt).getOrElse(1)
+    pageNo match {
+        case p if p >= 1 => p
+        case _ => 1
+    }
+}
+
+@disabledPrev(form: Form[StationQuery]) = @{
+    if(currentPage(form) <= 1) {
+        "disabled"
+    } else {
+        ""
+    }
+}
+
+@disabledNext(form: Form[StationQuery]) = @{
+    if(currentPage(form) >= Math.ceil(total / 2.toDouble).toInt) {
+        "disabled"
+    } else {
+        ""
+    }
+}
+
+@activePage(page: Int) = @{
+    if(currentPage(form) == page) {
+        "active"
+    } else {
+        ""
+    }
+}
+
+@queryParam(form: Form[StationQuery], page: Int) = @{
+    val nameQuery = form.data.get("name").map(str => s"name=$str")
+    val availableQuery = form.data.get("available").map(str => s"available=$str")
+    val queryString = Seq(nameQuery, availableQuery).flatten.mkString("&") + "&page=" + page.toString
+    queryString
+}
+
 @main("MU Sloth Bike", assetsFinder) {
     <div>
         <h2>Station List</h2>
-        <section class="row border">
+        <section class="border">
             @helper.form(action = routes.StationController.filterStationAction(), 'class -> "col-md-12") {
                 <div class="row">
                     <div class="form-group row col-md-6">
@@ -27,48 +66,54 @@
                 </div>
             }
         </section>
-        <section class="row">
-            <p>
-                <a href="/stations/add" class="btn btn-primary">Add New</a>
-            </p>
-            @if(total != 0) {
-            <table class="table table-bordered">
-                <thead>
-                <tr>
-                    <th>Station Name</th>
-                    <th>Location</th>
-                    <th>Available Assets</th>
-                </tr>
-                </thead>
-                <tbody>
-                @for(station <- stations) {
-                <tr>
-                    <th>@station.name</th>
-                    <th>@station.location</th>
-                    <th>@station.available</th>
-                </tr>
-                }
-                </tbody>
-            </table>
-            <nav aria-label="Page navigation example">
-                <ul class="pagination justify-content-center">
-                    <li class="page-item">
-                        <a class="page-link" href="#" aria-label="Previous">
-                            <span aria-hidden="true">&laquo;</span>
-                            <span class="sr-only">Previous</span>
-                        </a>
-                    </li>
-                    @for(i <- 1 to Math.ceil(total / 2.toDouble).toInt) {
-                    <li class="page-item"><a class="page-link" href="#">@i</a></li>
-                    }
-                    <li class="page-item">
-                        <a class="page-link" href="#" aria-label="Next">
-                            <span aria-hidden="true">&raquo;</span>
-                            <span class="sr-only">Next</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
+        <section>
+            <div class="row">
+                <p class="col-md-12">
+                    <a href="/stations/add" class="btn btn-primary">Add New</a>
+                </p>
+            </div>
+            @if(stations.size != 0) {
+            <div class="row">
+                <div class="col-md-12 col-centered">
+                    <table class="table table-bordered">
+                        <thead>
+                        <tr>
+                            <th>Station Name</th>
+                            <th>Location</th>
+                            <th>Available Assets</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @for(station <- stations) {
+                        <tr>
+                            <th>@station.name</th>
+                            <th>@station.location</th>
+                            <th>@station.available</th>
+                        </tr>
+                        }
+                        </tbody>
+                    </table>
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item @disabledPrev(form)">
+                                <a class="page-link" href="/stations?@queryParam(form, currentPage(form) - 1)" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                    <span class="sr-only">Previous</span>
+                                </a>
+                            </li>
+                            @for(i <- 1 to Math.ceil(total / 2.toDouble).toInt) {
+                            <li class="page-item @activePage(i)"><a class="page-link" href="/stations?@queryParam(form, i)">@i</a></li>
+                            }
+                            <li class="page-item @disabledNext(form)">
+                                <a class="page-link" href="/stations?@queryParam(form, currentPage(form) + 1)" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                    <span class="sr-only">Next</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
             }
         </section>
     </div>
