@@ -1,0 +1,87 @@
+@(form: Form[BikeImport], fields: BikeFields, bikesStatus: Seq[BikeStatus], stations: Seq[Station])(implicit assetsFinder: AssetsFinder)
+
+@validateClass(field: String) = @{
+  if(form.errors.find(_.key == field).nonEmpty){"is-invalid"}
+  else ""
+}
+
+@getValue(field: String) = @{
+  form(field).value.getOrElse("")
+}
+
+@main("MU Sloth Bike", assetsFinder) {
+
+  <div class="card border-secondary mb-3">
+    <div class="card-header">Asset Import</div>
+    <div class="card-body text-secondary">
+      @helper.form(action = routes.AssetsController.uploadAssets(), 'enctype -> "multipart/form-data") {
+        <div class="form-row">
+          <div class="form-group col-md-4">
+            <label>หมายเลขล็อต</label>
+            <input name="@fields.lotNo" type="text" class="form-control @validateClass(fields.lotNo)" placeholder="หมายเลขล็อต" value="@getValue(fields.lotNo)">
+            @if(form.errors.find(_.key == fields.lotNo).nonEmpty) {
+              <div class="invalid-feedback">
+              @form.errors(fields.lotNo).map(_.message)
+              </div>
+            }
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label>Detail</label>
+            <input name="@fields.detail" type="text" class="form-control @validateClass(fields.detail)" placeholder="Details" value="@getValue(fields.detail)">
+            @if(form.errors.find(_.key == fields.detail).nonEmpty) {
+              <div class="invalid-feedback">
+              @form.errors(fields.detail).map(_.message)
+              </div>
+            }
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-md-3">
+            <label>Status</label>
+            <select name="@fields.statusId" class="form-control @validateClass(fields.statusId)" value="@getValue(fields.statusId)">
+            @bikesStatus.map { bs =>
+              <option value="@bs.id" @if(bs.id.toString == getValue(fields.statusId)){ selected }>@bs.status</option>
+            }
+            </select>
+            @if(form.errors.find(_.key == fields.statusId).nonEmpty) {
+              <div class="invalid-feedback">
+              @form.errors(fields.statusId).map(_.message)
+              </div>
+            }
+          </div>
+          <div class="form-group col-md-3">
+            <label>Stations</label>
+            <select name="@fields.stationId" class="form-control @validateClass(fields.stationId)" value="@getValue(fields.stationId)">
+            @stations.map { s =>
+              <option value="@s.id" @if(s.id.toString == getValue(fields.stationId)){ selected }>@s.name, @s.location</option>
+            }
+            </select>
+            @if(form.errors.find(_.key == fields.stationId).nonEmpty) {
+              <div class="invalid-feedback">
+              @form.errors(fields.stationId).map(_.message)
+              </div>
+            }
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-md-4">
+            <label>File</label>
+            <input name="fileImport" type="file" class="form-control @validateClass(fields.detail)" placeholder="File" value="@getValue(fields.detail)" accept=".xls,.xlsx">
+            @if(form.errors.find(_.key == fields.detail).nonEmpty) {
+              <div class="invalid-feedback">
+              @form.errors(fields.detail).map(_.message)
+              </div>
+            }
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-md-2">
+            <button type="submit" class="btn btn-primary btn-block">Submit</button>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+}

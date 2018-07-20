@@ -9,7 +9,7 @@ object Contraints {
 
   def validateDate: Constraint[Date] = Constraint[Date]("constraint.required") { v =>
     if (v == null) Invalid(ValidationError("This field is required"))
-    else if(v.before(new Date())) Invalid(ValidationError("Invalid date"))
+    else if(new Date().after(v)) Invalid(ValidationError("Invalid date"))
     else Valid
   }
 

@@ -10,7 +10,7 @@ import scala.util.Success
 
 class HistoryController @Inject()(historyRepository: HistoryRepository) extends Controller {
   def getHistories = Action {
-    val h = historyRepository.getHistories(HistoryQuery(None, None, None, None, 0, 20))
+    val h = historyRepository.getHistories(HistoryQuery(None, None, None, None, None, 0, 20))
     h onComplete {
       case Success(s) =>
         println(Console.RED + s + Console.RESET)

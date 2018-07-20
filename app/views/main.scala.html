@@ -3,17 +3,19 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+      <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-        <title>@title</title>
+      @*<meta http-equiv="Content-Security-Policy" content="img-src 'self' data:; default-src 'self' http://XX.XX.XX.XX:8084/mypp/">*@
+
+      <title>@title</title>
         <link rel="stylesheet" media="screen" href="@assetsFinder.path("stylesheets/main.css")">
         <link rel="shortcut icon" type="image/png" href="@assetsFinder.path("images/favicon.png")">
         <link rel="stylesheet" href="@assetsFinder.path("bootstrap-4.1.1-dist/css/bootstrap.min.css")">
-        <script src="@assetsFinder.path("javascripts/hello.js")" type="text/javascript"></script>
 
         <script src="@assetsFinder.path("javascripts/jquery-3.3.1.slim.min.js")"></script>
         <script src="@assetsFinder.path("javascripts/popper.min.js")"></script>
         <script src="@assetsFinder.path("bootstrap-4.1.1-dist/js/bootstrap.min.js")"></script>
+        <script src="@assetsFinder.path("javascripts/hello.js")"></script>
 
     </head>
     <body>

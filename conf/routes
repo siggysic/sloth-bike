@@ -10,11 +10,22 @@ GET     /count                      controllers.CountController.count
 GET     /message                    controllers.AsyncController.message
 
 # View
-+ nocsrf
-POST    /asset                      controllers.AssetsController.insertAssets
 GET     /assets                     controllers.AssetsController.viewAssets(page: Int ?= 1)
 GET     /assets/insert              controllers.AssetsController.viewInsertAssets
-POST    /assets/search              controllers.AssetsController.searchAssets
+GET     /assets/import              controllers.AssetsController.viewImportAssets
+GET     /assets/:id                 controllers.AssetsController.viewDetailAssets(id: String, page: Int ?= 1)
+GET     /assets/edit/:id            controllers.AssetsController.viewEditAssets(id: String, page: Int ?= 1)
+
++ nocsrf
+POST    /asset/insert               controllers.AssetsController.insertAssets
++ nocsrf
+POST    /asset/edit                 controllers.AssetsController.editAssets
++ nocsrf
+POST    /asset/upload               controllers.AssetsController.uploadAssets
+GET     /asset/search-barcode       controllers.AssetsController.searchOrPrintBarcode(search: models.BikeSearch, page: Int ?= 1)
+
+# APIs for mobile
+GET     /api/stations               controllers.api.StationController.getStations
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(file)

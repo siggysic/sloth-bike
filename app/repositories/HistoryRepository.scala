@@ -52,7 +52,7 @@ class HistoryRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
     db.run(action)
   }
 
-  def getHistories(query: HistoryQuery): Future[Seq[((((History, Option[Bike]), Option[BikeStatus]), Option[(UUID, Option[Int])]), Option[Station])]] = {
+  def getHistories(query: HistoryQuery): Future[Seq[(Int, ((((History, Option[Bike]), Option[BikeStatus]), Option[(UUID, Option[Int])]), Option[Station]))]] = {
     val queryBase = history.joinLeft(bike).on(_.bikeId === _.id)
       .joinLeft(status).on(_._1.statusId === _.id)
       .joinLeft(
@@ -96,12 +96,20 @@ class HistoryRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
       case None => filteredFromDate
     }
 
-    val fullQuery = filteredToDate
+    val filteredBikeId = query.bikeId match {
+      case Some(id) =>
+        filteredToDate.filter(_._1._1._1._2.map(_.id like id))
+      case None => filteredToDate
+    }
+
+    val fullQuery = filteredBikeId
+
+    val total = fullQuery.length
 
     val action = for {
-      query <- fullQuery.drop((query.page - 1) * query.pageSize).take(query.pageSize).result
-    } yield query
+      query <- fullQuery.drop((query.page - 1) * query.pageSize).take(query.pageSize)
+    } yield (total, query)
 
-    db.run(action)
+    db.run(action.result)
   }
 }

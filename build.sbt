@@ -18,3 +18,11 @@ libraryDependencies ++= Seq(
   "com.typesafe.play" %% "play-slick" % "3.0.0",
   "com.typesafe.play" %% "play-slick-evolutions" % "3.0.0"
 )
+libraryDependencies ++= Seq(
+  "org.apache.poi" % "poi" % "3.17",
+  "org.apache.poi" % "poi" % "3.17",
+  "org.apache.poi" % "poi-ooxml" % "3.17",
+  "org.apache.poi" % "poi-ooxml-schemas" % "3.17"
+)
+
+routesImport += "binders.Binders._"

@@ -1,0 +1,130 @@
+@import scala.Predef.double2Double
+@(bike: (Bike, BikeStatus, Station),
+        history: Seq[(Int, History, Option[BikeStatus], Option[(java.util.UUID, Option[Int])])],
+        pageSize: PageSize)(implicit assetsFinder: AssetsFinder)
+
+@main("MU Sloth Bike", assetsFinder) {
+
+  <div class="card border-secondary mb-3">
+    <div class="card-header">Asset Detail</div>
+    <div class="card-body text-secondary">
+      <div class="form-row">
+        <div class="form-group col-md-2">
+          <label>
+            <b>วันรับเข้า</b> :
+          </label>
+        </div>
+        <div class="form-group col-md-4">
+          <label>@{new java.util.Date(bike._1.arrivalDate.getTime).format("d MMM yyyy")}</label>
+        </div>
+        <div class="form-group col-md-2">
+          <label>
+            <b>อายุการใช้งาน</b> :
+          </label>
+        </div>
+        <div class="form-group col-md-3">
+          <label>
+            @{
+              val arrivalDate = bike._1.arrivalDate.toLocalDateTime.toLocalDate
+              val now = java.time.LocalDate.now
+              val diff = java.time.Period.between(arrivalDate, now)
+              s"${diff.getYears} ปี ${diff.getMonths} เดือน ${diff.getDays} วัน"
+            }
+          </label>
+        </div>
+        <div class="form-group col-md-1">
+          <a href="@routes.AssetsController.viewEditAssets(bike._1.id)" class="btn btn-secondary btn-block">Edit</a>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group col-md-2">
+          <label>
+            <b>หมายเลขล็อต</b> :
+          </label>
+        </div>
+        <div class="form-group col-md-4">
+          <label>
+            @bike._1.lotNo
+          </label>
+        </div>
+        <div class="form-group col-md-2">
+          <label>
+            <b>detail</b> :
+          </label>
+        </div>
+        <div class="form-group col-md-4">
+          <label>
+            @bike._1.detail.getOrElse("")
+          </label>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group col-md-2">
+          <label>
+            <b>เลขครุภัณฑ์</b> :
+          </label>
+        </div>
+        <div class="form-group col-md-4">
+          <label>
+            @bike._1.pieceNo
+          </label>
+        </div>
+        <div class="form-group col-md-2">
+          <label>
+            <b>ป้ายทะเบียน</b> :
+          </label>
+        </div>
+        <div class="form-group col-md-4">
+          <label>
+            @bike._1.licensePlate
+          </label>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group col-md-2">
+          <label>
+            <b>Key Barcode</b> :
+          </label>
+        </div>
+        <div class="form-group col-md-4">
+          <label>
+            @bike._1.keyBarcode
+          </label>
+        </div>
+        <div class="form-group col-md-2">
+          <label>
+            <b>RFID</b> :
+          </label>
+        </div>
+        <div class="form-group col-md-4">
+          <label>
+            @bike._1.referenceId
+          </label>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group col-md-2">
+          <label>
+            <b>Status</b> :
+          </label>
+        </div>
+        <div class="form-group col-md-4">
+          <label>
+            @bike._2.status at @bike._3.name
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3>History</h3>
+
+  @table("From Date" :: "To Date" :: "Status" :: "ค่าปรับ (บาท)" :: "Remark" :: Nil,
+    history.map(h => (
+            routes.AssetsController.viewAssets(),
+            h._2.borrowDate :: h._2.returnDate :: h._3.map(s => s.status).getOrElse("") :: h._4.map(p => p._2.getOrElse(0)).getOrElse(0) ::
+            h._2.remark.getOrElse("") :: Nil
+    ))
+  )
+
+}
