@@ -8,6 +8,13 @@
     }
 }
 
+@pageSize(form: Form[StationQuery]) = @{
+    form.data.get("pageSize").map(_.toInt).getOrElse(10) match {
+        case p if p >= 1 => p
+        case _ => 10
+    }
+}
+
 @disabledPrev(form: Form[StationQuery]) = @{
     if(currentPage(form) <= 1) {
         "disabled"
@@ -17,7 +24,7 @@
 }
 
 @disabledNext(form: Form[StationQuery]) = @{
-    if(currentPage(form) >= Math.ceil(total / 2.toDouble).toInt) {
+    if(currentPage(form) >= Math.ceil(total / pageSize(form).toDouble).toInt) {
         "disabled"
     } else {
         ""
@@ -32,6 +39,14 @@
     }
 }
 
+@pageList(total: Int, form: Form[StationQuery]) = @{
+    val page = currentPage(form)
+    val pageAmount =  Math.ceil(total / pageSize(form).toDouble).toInt
+
+    val list = 1 to pageAmount
+    list.filter(i => i >= page - 3 && i <= page + 3)
+}
+
 @queryParam(form: Form[StationQuery], page: Int) = @{
     val nameQuery = form.data.get("name").map(str => s"name=$str")
     val availableQuery = form.data.get("available").map(str => s"available=$str")
@@ -42,7 +57,7 @@
 @main("MU Sloth Bike", assetsFinder) {
     <div>
         <h2>Station List</h2>
-        <section class="border.bg-light">
+        <section class="border bg-light">
             @helper.form(action = routes.StationController.filterStationAction(), 'class -> "col-md-12") {
                 <div class="row">
                     <div class="form-group row col-md-6">
@@ -86,9 +101,9 @@
                         <tbody>
                         @for(station <- stations) {
                         <tr>
-                            <th>@station.name</th>
-                            <th>@station.location</th>
-                            <th>@station.available</th>
+                            <td>@station.name</td>
+                            <td>@station.location</td>
+                            <td>@station.available</td>
                         </tr>
                         }
                         </tbody>
@@ -101,7 +116,7 @@
                                     <span class="sr-only">Previous</span>
                                 </a>
                             </li>
-                            @for(i <- 1 to Math.ceil(total / 2.toDouble).toInt) {
+                            @for(i <- pageList(total, form)) {
                             <li class="page-item @activePage(i)"><a class="page-link" href="/stations?@queryParam(form, i)">@i</a></li>
                             }
                             <li class="page-item @disabledNext(form)">

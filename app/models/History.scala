@@ -4,10 +4,16 @@ import java.sql.Timestamp
 import java.util.UUID
 
 
-case class History(id: UUID, studentId: String, remark: Option[String],
-                   borrowDate: Timestamp, returnDate: Option[Timestamp],
+case class History(id: String, studentId: Option[String], remark: Option[String],
+                   borrowDate: Option[Timestamp], returnDate: Option[Timestamp],
                    createdAt: Timestamp = new Timestamp(System.currentTimeMillis()),
                    updatedAt: Timestamp = new Timestamp(System.currentTimeMillis()),
-                   station: Option[Int], statusId: Int, bikeId: String, paymentId: Option[UUID])
+                   station: Option[Int], statusId: Int, bikeId: String, paymentId: Option[String])
+
+case class HistoryWithPayment(history: History, payment: Payment, student: Student)
 
 case class HistoryQuery(lotNo: Option[String], station: Option[String], returnFrom: Option[Timestamp], returnTo: Option[Timestamp], page: Int, pageSize: Int)
+
+case class HistoryWithStatus(id: String, studentId: Option[String], remark: Option[String],
+                             borrowDate: Option[Timestamp], returnDate: Option[Timestamp],
+                             status: BikeStatus)
