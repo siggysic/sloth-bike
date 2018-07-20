@@ -24,11 +24,20 @@ POST    /asset/edit                 controllers.AssetsController.editAssets
 POST    /asset/upload               controllers.AssetsController.uploadAssets
 GET     /asset/search-barcode       controllers.AssetsController.searchOrPrintBarcode(search: models.BikeSearch, page: Int ?= 1)
 
-# APIs for mobile
-GET     /api/stations               controllers.api.StationController.getStations
+GET     /stations                   controllers.StationController.viewStations(name: Option[String] ?= None, available: Option[Int] ?= None, page: Int ?= 1)
++ nocsrf
+POST    /stations                   controllers.StationController.filterStationAction
+GET     /stations/add               controllers.StationController.viewAddStation
+
++ nocsrf
+POST    /stations/add               controllers.StationController.addStation
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(file)
+
+# APIs for mobile
+GET     /api/stations               controllers.api.StationController.getStations
+POST    /api/stations               controllers.api.StationController.loginStations
 
 GET     /api/payments               controllers.PaymentController.getPayments
 GET     /api/histories              controllers.HistoryController.getHistories

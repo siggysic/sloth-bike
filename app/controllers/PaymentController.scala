@@ -9,7 +9,7 @@ import scala.util.Success
 
 class PaymentController @Inject()(paymentRepository: PaymentRepository) extends Controller {
   def getPayments() = Action {
-    val p = paymentRepository.getPayments
+    val p = paymentRepository.getPayments("")
     p onComplete {
       case Success(s) =>
         println(Console.RED + s + Console.RESET)

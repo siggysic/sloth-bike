@@ -1,0 +1,49 @@
+@(form: Form[Station])(implicit assetsFinder: AssetsFinder)
+
+@errorClass(form: Form[Station], fieldName: String) = @{
+    if(form.error(fieldName).isDefined) {
+        "is-invalid"
+    } else {
+        ""
+    }
+}
+
+@main("MU Sloth Bike", assetsFinder) {
+    <div>
+        <h2>New Station</h2>
+        @helper.form(action = routes.StationController.addStation()) {
+            <div class="input-group row col-md-12">
+                <label for="stationName" class="col-md-2 col-form-label">Station Name</label>
+                <div class="col-md-6">
+                    <input type="text" id="stationName" name="stationName"
+                           class='form-control form-control-sm col-md-5 @errorClass(form, "stationName")'
+                           value='@form.data.getOrElse("stationName", "")' />
+                    @if(form.error("stationName").isDefined) {
+                    <div class="invalid-feedback mb-1">
+                        @form.error("stationName").map(_.message)
+                    </div>
+                    }
+                </div>
+            </div>
+            <div class="form-group row col-md-12">
+                <label for="location" class="col-md-2 col-form-label">Location</label>
+                <div class="col-md-6">
+                    <input type="text" id="location" name="location"
+                           class='form-control form-control-sm col-md-5 @errorClass(form, "location")'
+                           value='@form.data.getOrElse("location", "")' />
+                    @if(form.error("location").isDefined) {
+                    <div class="invalid-feedback">
+                        @form.error("location").map(_.message)
+                    </div>
+                    }
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-md-10">
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                    <a href="/stations" class="btn btn-secondary">Cancel</a>
+                </div>
+            </div>
+        }
+    </div>
+}

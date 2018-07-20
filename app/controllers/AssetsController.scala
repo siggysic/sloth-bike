@@ -198,7 +198,12 @@ class AssetsController @Inject()(cc: ControllerComponents, bikeRepo: BikeReposit
                 new java.util.Date, row._1(0), data.statusId, data.stationId).toBike)
             }
             bikes.find(_ == None) match {
-              case None => Future.successful(Ok(""))
+              case None => bikeRepo.createBulk(bikes.flatten.toList).flatMap { _ =>
+                for {
+                  bikes <- bikeRepo.getBikesRelational(BikeQuery(None, pageSize.page, pageSize.size))
+                  status <- bikeStatusRepository.getStatus
+                } yield Ok(views.html.assets(bikeSearchForm, bikes, fields, pageSize, status))
+              }
               case _ => Future.successful(BadRequest(views.html.exception("File upload exception.")))
             }
           } catch {

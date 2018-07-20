@@ -18,4 +18,16 @@ object Contraints {
     else if (v.trim.isEmpty) Invalid(ValidationError("This field is required"))
     else Valid
   }
+
+  def validateTextWithField(f: String): Constraint[String] = Constraint[String]("constraint.required") { v =>
+    if (v == null) Invalid(ValidationError(s"$f is required"))
+    else if (v.trim.isEmpty) Invalid(ValidationError(s"$f is required"))
+    else Valid
+  }
+
+  def validateNumberWithField(f: String): Constraint[Int] = Constraint[Int]("constraint.required") { v =>
+    if (v == null) Invalid(ValidationError(s"$f is required"))
+    else if (v < 0) Invalid(ValidationError(s"$f cannot be negative value"))
+    else Valid
+  }
 }

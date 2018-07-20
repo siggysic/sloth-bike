@@ -52,6 +52,11 @@ class BikeRepository @Inject() (protected val dbConfigProvider: DatabaseConfigPr
     db.run(action)
   }
 
+  def createBulk(newBikes: Seq[Bike]): Future[Seq[Int]] = {
+    val action = DBIO.sequence(newBikes.map(row => bike += row))
+    db.run(action)
+  }
+
   def update(updateBike: Bike): Future[Int] = {
     val action = bike.filter(_.id === updateBike.id).update(updateBike)
     db.run(action)
