@@ -26,6 +26,8 @@ GET     /payments                   controllers.PaymentController.getPayments
 GET     /api/payments/:id           controllers.api.PaymentController.getPayment(id: String)
 POST    /api/payments               controllers.api.PaymentController.createTransaction
 
+GET     /api/fine/:studentId        controllers.api.HistoryController.getStudentFine(studentId: String)
+
 + nocsrf
 POST    /stations/add               controllers.StationController.addStation
 

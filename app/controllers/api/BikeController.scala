@@ -6,7 +6,7 @@ import java.util.UUID
 import cats.data.EitherT
 import cats.implicits._
 import javax.inject.Inject
-import models.{Bike, BikeStatus, History}
+import models.{Bike, BikeStatus, History, PaymentRequest, Payment, BikeReturnReq}
 import play.api.mvc.{AbstractController, ControllerComponents, Result}
 import repositories.{BikeRepository, BikeStatusRepository, HistoryRepository}
 
@@ -16,7 +16,10 @@ class BikeController @Inject()(cc: ControllerComponents, bikeRepository: BikeRep
                                historyRepository: HistoryRepository)
                               (implicit ec: ExecutionContext) extends AbstractController(cc) {
 
-  def returnBike(keyBarcode: String, historyId: String, paymentId: String) = Action.async {
+  def returnBike(keyBarcode: String, historyId: String, paymentReq: PaymentRequest) = Action.async {
+    val body = Try(request.body.asJson.get.toJValue).getOrElse(JObject(Nil))
+    val req = body.extract[BikeReturnReq]
+    val paymentReq = req.paymentReq
     val action =
       for {
         status <- {
@@ -32,14 +35,29 @@ class BikeController @Inject()(cc: ControllerComponents, bikeRepository: BikeRep
         }
 
         b <- {
-          val f = bikeRepository.updateByKeyBarcode(keyBarcode, status.id) map {
+          val f = bikeRepository.updateByKeyBarcode(req.keyBarcode, status.id) map {
             case Right(i) => Right(i)
             case Left(_) => Left(InternalServerError(""))
           }
           EitherT(f)
         }
+
+        p <- {
+          val payment = Payment(
+            UUID.randomUUID().toString,
+            Some(paymentReq.overtimeFine),
+            Some(paymentReq.defectFine),
+            Some(paymentReq.note)
+          )
+          val f = paymentRepository.createRecover(payment) map {
+            case Right(id) => Right(id)
+            case Left(_) => Left(InternalServerError(""))
+          }
+          EitherT(f)
+        }
+
         h <- {
-          val f: Future[Either[Result, Int]] = historyRepository.update(historyId, paymentId) map {
+          val f: Future[Either[Result, Int]] = historyRepository.update(req.historyId, p) map {
             case Right(i) => Right(i)
             case Left(_) => Left(InternalServerError(""))
           }

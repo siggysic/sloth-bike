@@ -67,6 +67,13 @@ class PaymentRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
     db.run(action)
   }
 
+   def createRecover(payment: Payment) = {
+    val action = this.payment.returning(this.payment.map(_.id)) += payment
+    db.run(action).map(Right.apply).recover {
+      case _: Exception => Left(DBException)
+    }
+  }
+
   def getFullPayment(studentId: String, studentName: String, major: String) = {
     val action = payment
       .join(payment).on(_.id === _.parentId)

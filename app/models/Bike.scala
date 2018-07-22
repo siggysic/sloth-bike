@@ -45,3 +45,6 @@ case class BikeSearch(
                        referenceId: Option[String],
                        statusId: Option[Int]
                      )
+
+
+case class BikeReturnReq(keyBarcode: String, historyId: String, paymentReq: PaymentRequest)
