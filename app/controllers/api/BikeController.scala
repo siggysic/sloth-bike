@@ -55,7 +55,7 @@ class BikeController @Inject()(cc: ControllerComponents, bikeRepository: BikeRep
           }
           EitherT(f)
         }
-s
+
         h <- {
           val f: Future[Either[Result, Int]] = historyRepository.update(req.historyId, p) map {
             case Right(i) => Right(i)
