@@ -96,7 +96,7 @@ class AssetsController @Inject()(cc: ControllerComponents, bikeRepo: BikeReposit
       history <- historyRepository.getHistories(HistoryQuery(Some(id), None, None, None, None, page, pageSize.size))
     } yield bike match {
       case Some(b) =>
-        val transformHistory: Seq[(Int, History, Option[BikeStatus], Option[(UUID, Option[Int])])] =
+        val transformHistory: Seq[(Int, History, Option[BikeStatus], Option[(String, Option[Int])])] =
           history.map(h => (h._1, h._2._1._1._1._1, h._2._1._1._2, h._2._1._2))
         Ok(views.html.assetsDetail(b, transformHistory, pageSize.copy(page = page)))
       case None => BadRequest(views.html.exception("Database exception."))

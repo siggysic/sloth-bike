@@ -3,6 +3,7 @@ package repositories
 import java.sql.Timestamp
 import java.util.UUID
 
+import exceptions.DBException
 import javax.inject.{Inject, Singleton}
 import models._
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
@@ -10,27 +11,24 @@ import slick.jdbc.JdbcProfile
 
 import scala.concurrent.{ExecutionContext, Future}
 
-@Singleton()
-class HistoryRepository @Inject() (protected val dbConfigProvider: DatabaseConfigProvider)(implicit ec: ExecutionContext)
-  extends BikeComponent
-    with BikeStatusComponent
-    with PaymentComponent
-    with StationComponent
-    with HasDatabaseConfigProvider[JdbcProfile] {
-
+trait HistoryComponent extends BikeComponent
+  with BikeStatusComponent
+  with PaymentComponent
+  with StationComponent { self: HasDatabaseConfigProvider[JdbcProfile] =>
   import profile.api._
-  private class Histories(tag: Tag) extends Table[History](tag, "histories") {
-    def id = column[UUID]("Id", O.PrimaryKey)
-    def studentId = column[String]("studentId")
+
+  class Histories(tag: Tag) extends Table[History](tag, "histories") {
+    def id = column[String]("Id", O.PrimaryKey)
+    def studentId = column[Option[String]]("studentId")
     def remark = column[Option[String]]("Remark")
-    def borrowDate = column[Timestamp]("BorrowDate")
+    def borrowDate = column[Option[Timestamp]]("BorrowDate")
     def returnDate = column[Option[Timestamp]]("ReturnDate")
     def updatedAt = column[Timestamp]("UpdatedAt")
     def createdAt = column[Timestamp]("CreatedAt")
     def stationId = column[Option[Int]]("StationId")
     def statusId = column[Int]("StatusId")
     def bikeId = column[String]("BikeId")
-    def paymentId = column[Option[UUID]]("PaymentId")
+    def paymentId = column[Option[String]]("PaymentId")
     def * =
       (id, studentId, remark, borrowDate, returnDate, createdAt, updatedAt, stationId, statusId, bikeId, paymentId) <>
         ((History.apply _).tupled, History.unapply)
@@ -39,20 +37,53 @@ class HistoryRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
     def status = foreignKey("Status", statusId, TableQuery[BikeStatusTable])(_.id, onUpdate = ForeignKeyAction.Cascade)
     def station = foreignKey("Station", stationId, TableQuery[Stations])(_.id, onUpdate = ForeignKeyAction.Cascade)
     def payment = foreignKey("Payment", paymentId, TableQuery[Payments])(_.id.?, onUpdate = ForeignKeyAction.Cascade)
-  }
+  }}
+
+@Singleton()
+class HistoryRepository @Inject() (protected val dbConfigProvider: DatabaseConfigProvider)(implicit ec: ExecutionContext)
+  extends HistoryComponent
+    with StudentComponent
+    with HasDatabaseConfigProvider[JdbcProfile] {
+
+  import profile.api._
 
   private val history = TableQuery[Histories]
   private val bike = TableQuery[Bikes]
   private val status = TableQuery[BikeStatusTable]
   private val station = TableQuery[Stations]
   private val payment = TableQuery[Payments]
+  private val student = TableQuery[Students]
 
-  def create(newHistory: History): Future[UUID] = {
+  def create(newHistory: History): Future[String] = {
     val action = history.returning(history.map(_.id)) += newHistory
     db.run(action)
   }
 
-  def getHistories(query: HistoryQuery): Future[Seq[(Int, ((((History, Option[Bike]), Option[BikeStatus]), Option[(UUID, Option[Int])]), Option[Station]))]] = {
+  def getHistoryWithPayment(id: String) = {
+    val action = history
+      .joinLeft(
+        payment.join(payment).on(_.id === _.parentId)
+          .groupBy(_._1.id)
+          .map {
+            case (id, group) =>
+              val baseOvertimeFine = group.map(_._1.overtimeFine.getOrElse(0)).max
+              val baseDefectFine = group.map(_._1.defectFine.getOrElse(0)).max
+              val subOvertimeFine =
+                group.map(p => p._2.overtimeFine).sum.getOrElse(0)
+              val subDefectFine =
+                group.map(p => p._2.defectFine).sum.getOrElse(0)
+
+              (id, baseOvertimeFine + subOvertimeFine, baseDefectFine + subDefectFine)
+          }
+      ).on(_.paymentId === _._1)
+      .join(student).on(_._1.studentId === _.id)
+      .filter(_._1._1.id === id)
+      .result.headOption
+
+    db.run(action)
+  }
+
+  def getHistories(query: HistoryQuery): Future[Seq[(Int, ((((History, Option[Bike]), Option[BikeStatus]), Option[(String, Option[Int])]), Option[Station]))]] = {
     val queryBase = history.joinLeft(bike).on(_.bikeId === _.id)
       .joinLeft(status).on(_._1.statusId === _.id)
       .joinLeft(
@@ -111,5 +142,26 @@ class HistoryRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
     } yield (total, query)
 
     db.run(action.result)
+  }
+
+  def getLastActionOfStudent(studentId: String): Future[Either[DBException.type, Option[(History, BikeStatus)]]] = {
+    val action =
+      history
+          .join(status).on(_.statusId === _.id)
+          .filter(h => h._1.studentId === Option.apply(studentId) && h._1.returnDate.isEmpty && h._1.borrowDate.isDefined && h._2.name === "Borrowed")
+          .sortBy(_._1.updatedAt)
+          .result.headOption
+
+    db.run(action).map(Right.apply).recover {
+      case _: Exception => Left(DBException)
+    }
+  }
+
+  def update(historyId: String, paymentId: String) = {
+    val returnDate = new Timestamp(System.currentTimeMillis())
+    val action = history.map(h => (h.returnDate, h.paymentId)).update((Some(returnDate), Some(paymentId)))
+    db.run(action) map Right.apply recover {
+      case _: Exception => Left(DBException)
+    }
   }
 }

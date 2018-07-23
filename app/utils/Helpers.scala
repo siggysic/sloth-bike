@@ -4,6 +4,10 @@ import io.igl.jwt._
 import net.liftweb.json.JValue
 import net.liftweb.json.JsonAST.JString
 import play.api.libs.json.{JsNumber, JsString, JsValue}
+import net.liftweb.json.{DefaultFormats, JObject, JValue}
+import play.api.libs.json.JsValue
+
+import scala.util.Try
 
 import scala.util.Try
 
@@ -50,6 +54,13 @@ object StationLocation extends ClaimField {
 }
 
 object Helpers {
+  object JsonHelper {
+    implicit val format = DefaultFormats
+
+    implicit class ExtendJsValue(json: JsValue) {
+      def toJValue: JValue = Try(net.liftweb.json.parse(json.toString())).getOrElse(JObject(Nil))
+    }
+  }
 
   object Authentication {
     private val secret = "slothbike"
@@ -67,5 +78,4 @@ object Helpers {
       )
     }
   }
-
 }

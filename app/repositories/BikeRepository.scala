@@ -3,6 +3,7 @@ package repositories
 import java.sql.Timestamp
 import java.util.UUID
 
+import exceptions.DBException
 import javax.inject.{Inject, Singleton}
 import models._
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
@@ -113,5 +114,19 @@ class BikeRepository @Inject() (protected val dbConfigProvider: DatabaseConfigPr
     } yield (total, b, bs, s)
 
     db.run(action.result)
+  }
+
+  def updateByKeyBarcode(keyBarcode: String, statusId: Int) = {
+    val action = bike.filter(_.keyBarcode === Option.apply(keyBarcode)).map(_.statusId).update(statusId)
+    db.run(action).map(Right.apply).recover {
+      case _: Exception => Left(DBException)
+    }
+  }
+
+  def getBikeByKeyBarcode(keyBarcode: String) = {
+    val action = bike.filter(_.keyBarcode === Option.apply(keyBarcode)).result.headOption
+    db.run(action).map(Right.apply).recover {
+      case _: Exception => Left(DBException)
+    }
   }
 }

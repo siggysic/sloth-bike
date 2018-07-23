@@ -28,6 +28,11 @@ GET     /stations                   controllers.StationController.viewStations(n
 + nocsrf
 POST    /stations                   controllers.StationController.filterStationAction
 GET     /stations/add               controllers.StationController.viewAddStation
+GET     /payments                   controllers.PaymentController.getPayments
+
+# API
+GET     /api/payments/:id           controllers.api.PaymentController.getPayment(id: String)
+POST    /api/payments               controllers.api.PaymentController.createTransaction
 
 + nocsrf
 POST    /stations/add               controllers.StationController.addStation

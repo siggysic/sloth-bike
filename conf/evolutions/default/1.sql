@@ -33,6 +33,14 @@ CREATE TABLE bikes (
       ON UPDATE CASCADE
     );
 
+CREATE TABLE students (
+    Id VARCHAR(12) NOT NULL PRIMARY KEY,
+    FirstName VARCHAR(255),
+    LastName VARCHAR(255),
+    Major VARCHAR(255),
+    ProfilePicture VARCHAR(255)
+);
+
 CREATE TABLE payments (
     Id VARCHAR(255) NOT NULL PRIMARY KEY,
     OvertimeFine INT,
@@ -82,6 +90,7 @@ CREATE TABLE histories (
 
 DROP TABLE histories
 DROP TABLE payments
+DROP TABLE students
 DROP TABLE bikes
 DROP TABLE bike_status
 DROP TABLE stations
