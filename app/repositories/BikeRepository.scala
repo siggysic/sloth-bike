@@ -83,6 +83,12 @@ class BikeRepository @Inject() (protected val dbConfigProvider: DatabaseConfigPr
     db.run(action.result.headOption)
   }
 
+  def getBikeTotal(): Future[Int] = {
+    val action = bike.length
+
+    db.run(action.result)
+  }
+
   def getBikesRelational(query: BikeQuery): Future[Seq[(Int, Bike, BikeStatus, Station)]] =
     getBikePagination(bike, query)
 

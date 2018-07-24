@@ -58,3 +58,7 @@ case class BikeSearch(
                        referenceId: Option[String] = None,
                        statusId: Option[Int] = None
                      )
+
+case class BikeTotal(
+                    total: Int
+                    )

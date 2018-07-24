@@ -6,15 +6,25 @@ import java.util.UUID
 import cats.data.EitherT
 import cats.implicits._
 import javax.inject.Inject
-import models.{Bike, BikeStatus, History}
-import play.api.mvc.{AbstractController, ControllerComponents, Result}
+import models._
+import play.api.mvc.{AbstractController, Action, ControllerComponents, Result}
 import repositories.{BikeRepository, BikeStatusRepository, HistoryRepository}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class BikeController @Inject()(cc: ControllerComponents, bikeRepository: BikeRepository, statusRepository: BikeStatusRepository,
+class BikeController @Inject()(bikeRepository: BikeRepository, statusRepository: BikeStatusRepository,
                                historyRepository: HistoryRepository)
-                              (implicit ec: ExecutionContext) extends AbstractController(cc) {
+                              (implicit ec: ExecutionContext) extends Response {
+
+  import utils.Helpers.Authentication._
+
+  def getBikeTotal = authAsync { implicit req =>
+    val bikeTotal: Future[Either[CustomException, BikeTotal]] = for {
+      total <- bikeRepository.getBikeTotal()
+    } yield Right(BikeTotal(total))
+
+    response(bikeTotal)
+  }
 
   def returnBike(keyBarcode: String, historyId: String, paymentId: String) = Action.async {
     val action =

@@ -1,15 +1,13 @@
 package utils
 
 import io.igl.jwt._
-import net.liftweb.json.JValue
-import net.liftweb.json.JsonAST.JString
-import play.api.libs.json.{JsNumber, JsString, JsValue}
+import models.{Response, UnauthorizedException}
 import net.liftweb.json.{DefaultFormats, JObject, JValue}
-import play.api.libs.json.JsValue
+import play.api.libs.json.{JsNumber, JsString, JsValue}
+import play.api.mvc._
 
-import scala.util.Try
-
-import scala.util.Try
+import scala.concurrent.Future
+import scala.util.{Success, Try}
 
 case class ClaimSet(station_id: StationId, station_name: StationName, station_location: StationLocation) {
   def toSeq = Seq(station_id, station_name, station_location)
@@ -17,7 +15,7 @@ case class ClaimSet(station_id: StationId, station_name: StationName, station_lo
 
 object ClaimSet {
   def apply(n: Int, u: String, e: String): ClaimSet = ClaimSet(StationId(n), StationName(u), StationLocation(e))
-  def expected: Set[ClaimField] = Set(StationId)
+  def expected: Set[ClaimField] = Set(StationId, StationName, StationLocation)
 }
 
 case class StationId(value: Int) extends ClaimValue {
@@ -62,9 +60,15 @@ object Helpers {
     }
   }
 
-  object Authentication {
+  object Authentication extends Response {
     private val secret = "slothbike"
     private val algorithm = Algorithm.HS256
+
+    private def verifyJWT[W](block: Request[W] => Future[Result])(req: Request[W]): Future[Result] =
+      decode(req.headers.get("Authorization").getOrElse("")) match {
+        case Success(_) => block(req)
+        case _ => response(Future.successful(Left(UnauthorizedException)), Results.Unauthorized)
+      }
 
     def encode(cs: ClaimSet): String = new DecodedJwt(Seq(Alg(algorithm), Typ("JWT")), cs.toSeq).encodedAndSigned(secret)
 
@@ -77,5 +81,7 @@ object Helpers {
         ClaimSet.expected
       )
     }
+
+    def authAsync(block: Request[AnyContent] => Future[Result]): Action[AnyContent] = Action.async(verifyJWT(block) _)
   }
 }

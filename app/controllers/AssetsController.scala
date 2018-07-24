@@ -193,12 +193,12 @@ class AssetsController @Inject()(cc: ControllerComponents, bikeRepo: BikeReposit
               row <- sheet
             } yield row.iterator().toList.map(formatter.formatCellValue)
             val bikes = excels.zipWithIndex.map{ row =>
-              if(row._2 == 0 && !row._1.equals(headers)) None
+              if(row._2 == 0 && row._1.equals(headers)) None
               else Some(BikeRequest(None, row._1(1), row._1(2), data.lotNo, row._1(3), data.detail,
                 new java.util.Date, row._1(0), data.statusId, data.stationId).toBike)
             }
-            bikes.find(_ == None) match {
-              case None => bikeRepo.createBulk(bikes.flatten.toList).flatMap { _ =>
+            bikes.filter(_ == None).size match {
+              case 1 => bikeRepo.createBulk(bikes.flatten.toList).flatMap { _ =>
                 for {
                   bikes <- bikeRepo.getBikesRelational(BikeQuery(None, pageSize.page, pageSize.size))
                   status <- bikeStatusRepository.getStatus

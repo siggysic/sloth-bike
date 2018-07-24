@@ -34,7 +34,7 @@ class StationController @Inject()(stationRepository: StationRepository) extends 
 
   def loginStations = Action.async { implicit request: Request[AnyContent] =>
     val errorFunction = { formWithErrors: Form[LoginStation] =>
-      response(Future.successful(Left(CustomException(formWithErrors.errors.map(_.message), 400))))
+      response(Future.successful(Left(GenericException(formWithErrors.errors.map(_.message), 400))))
     }
 
     val successFunction = { data: LoginStation =>
@@ -42,7 +42,7 @@ class StationController @Inject()(stationRepository: StationRepository) extends 
         st <- stationRepository.getStation(data.station_id)
       } yield st match {
         case Some(value) => Right(ClaimSet(value.id.get, value.name, value.location))
-        case None => Left(CustomException("Station not found" :: Nil, 404))
+        case None => Left(GenericException("Station not found" :: Nil, 404))
       }
       response(stations.map(_.right.map(s => ("token" -> Extraction.decompose(encode(s))) ~ JObject(Nil))))
     }
