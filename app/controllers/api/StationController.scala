@@ -42,7 +42,7 @@ class StationController @Inject()(stationRepository: StationRepository) extends 
         st <- stationRepository.getStation(data.station_id)
       } yield st match {
         case Some(value) => Right(ClaimSet(value.id.get, value.name, value.location))
-        case None => Left(GenericException("Station not found" :: Nil, 404))
+        case None => Left(NotFoundException("Station"))
       }
       response(stations.map(_.right.map(s => ("token" -> Extraction.decompose(encode(s))) ~ JObject(Nil))))
     }

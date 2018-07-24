@@ -20,8 +20,11 @@ abstract class CustomException(msg: Seq[String], status: Int) {
 
 case class GenericException(msg: Seq[String], status: Int) extends CustomException(msg, status)
 
-case object UnauthorizedException
-  extends CustomException("Token is invalid" :: Nil, 401)
+case class NotFoundException(topic: String) extends CustomException(s"$topic not found".trim :: Nil, 400)
+
+case object UnauthorizedException extends CustomException("Token is invalid" :: Nil, 401)
+
+case object DBException extends CustomException("Database exception" :: Nil, 400)
 
 trait Response extends Controller {
 

@@ -26,6 +26,18 @@ class BikeController @Inject()(bikeRepository: BikeRepository, statusRepository:
     response(bikeTotal)
   }
 
+  def getBikesByBarcodeId(bid: String) = authAsync { implicit req =>
+    val result: Future[Either[CustomException, Bike]] = for {
+      bike <- bikeRepository.getBikeByKeyBarcode(bid)
+    } yield bike match {
+      case Right(Some(foundBike)) => Right(foundBike)
+      case Right(None) => Left(NotFoundException("Barcode"))
+      case Left(exp) => Left(exp)
+    }
+
+    response(result)
+  }
+
   def returnBike(keyBarcode: String, historyId: String, paymentId: String) = Action.async {
     val action =
       for {

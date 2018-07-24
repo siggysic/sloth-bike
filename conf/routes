@@ -45,6 +45,7 @@ GET     /api/stations               controllers.api.StationController.getStation
 POST    /api/stations               controllers.api.StationController.loginStations
 
 GET     /api/bikes/total            controllers.api.BikeController.getBikeTotal
+GET     /api/bikes/barcodes/:id     controllers.api.BikeController.getBikesByBarcodeId(id: String)
 
 GET     /api/payments               controllers.PaymentController.getPayments
 GET     /api/histories              controllers.HistoryController.getHistories

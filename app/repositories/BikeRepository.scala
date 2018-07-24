@@ -3,7 +3,6 @@ package repositories
 import java.sql.Timestamp
 import java.util.UUID
 
-import exceptions.DBException
 import javax.inject.{Inject, Singleton}
 import models._
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
