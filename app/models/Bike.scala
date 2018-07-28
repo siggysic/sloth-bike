@@ -47,4 +47,8 @@ case class BikeSearch(
                      )
 
 
-case class BikeReturnReq(keyBarcode: String, historyId: String, paymentReq: PaymentRequest)
+case class BikeReturnReq(keyBarcode: String, historyId: String, paymentReq: PaymentReturn)
+case class BikeRepairReturnReq(keyBarcode: String)
+
+case class BikeBorrowedReq(keyBarcode: String)
+case class BikeRepairReq(keyBarcode: String)

@@ -149,9 +149,22 @@ class HistoryRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
     }
   }
 
-  def update(historyId: String, paymentId: String) = {
+  def getLastActionOfBike(bikeId: String, statusId: Int): Future[Either[DBException.type, Option[(History, BikeStatus)]]] = {
+    val action =
+      history
+        .join(status).on(_.statusId === _.id)
+        .filter(h => h._1.bikeId === bikeId && h._1.returnDate.isEmpty && h._1.borrowDate.isDefined && h._2.id === statusId)
+        .sortBy(_._1.updatedAt)
+        .result.headOption
+
+    db.run(action).map(Right.apply).recover {
+      case _: Exception => Left(DBException)
+    }
+  }
+
+  def update(historyId: String, paymentId: Option[String]) = {
     val returnDate = new Timestamp(System.currentTimeMillis())
-    val action = history.map(h => (h.returnDate, h.paymentId)).update((Some(returnDate), Some(paymentId)))
+    val action = history.map(h => (h.returnDate, h.paymentId)).update((Some(returnDate), paymentId))
     db.run(action) map Right.apply recover {
       case _: Exception => Left(DBException)
     }
