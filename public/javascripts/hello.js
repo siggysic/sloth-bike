@@ -1,3 +1,14 @@
+$(document).ready(function() {
+
+    $('#table-clickable tr').click(function() {
+        var href = $(this).find("a").attr("href");
+        if(href) {
+            window.location = href;
+        }
+    });
+
+});
+
 if (window.console) {
   console.log("Welcome to your Play application's JavaScript!");
 }
@@ -35,7 +46,6 @@ $(document).ready(function() {
     });
 
     $("#submitUpdate").click(function() {
-        console.log("XD");
        var data = $("#paymentModal form").serializeArray();
 
        var json = {};
@@ -49,12 +59,9 @@ $(document).ready(function() {
             type: 'POST',
             url: '/api/payments',
             success: function(data) {
-                console.log("Success");
+                document.location.href = "/payments"
             }
        })
-
-       console.log(json);
-
     });
 
 })

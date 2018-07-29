@@ -16,7 +16,7 @@ trait BikeStatusComponent { self: HasDatabaseConfigProvider[JdbcProfile] =>
     def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
     def name = column[String]("name")
 
-    def * = (id, name) <> ((BikeStatus.apply _).tupled, BikeStatus.unapply)
+    def * = (id, name).shaped <> ((BikeStatus.apply _).tupled, BikeStatus.unapply)
   }
 }
 

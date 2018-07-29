@@ -9,13 +9,25 @@ object Contraints {
 
   def validateDate: Constraint[Date] = Constraint[Date]("constraint.required") { v =>
     if (v == null) Invalid(ValidationError("This field is required"))
-    else if(v.before(new Date())) Invalid(ValidationError("Invalid date"))
+    else if(new Date().after(v)) Invalid(ValidationError("Invalid date"))
     else Valid
   }
 
   def validateText: Constraint[String] = Constraint[String]("constraint.required") { v =>
     if (v == null) Invalid(ValidationError("This field is required"))
     else if (v.trim.isEmpty) Invalid(ValidationError("This field is required"))
+    else Valid
+  }
+
+  def validateTextWithField(f: String): Constraint[String] = Constraint[String]("constraint.required") { v =>
+    if (v == null) Invalid(ValidationError(s"$f is required"))
+    else if (v.trim.isEmpty) Invalid(ValidationError(s"$f is required"))
+    else Valid
+  }
+
+  def validateNumberWithField(f: String): Constraint[Int] = Constraint[Int]("constraint.required") { v =>
+    if (v == null) Invalid(ValidationError(s"$f is required"))
+    else if (v < 0) Invalid(ValidationError(s"$f cannot be negative value"))
     else Valid
   }
 }

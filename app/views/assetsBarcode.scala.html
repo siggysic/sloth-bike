@@ -1,0 +1,21 @@
+@(formSearch: Form[BikeSearch], assets: Seq[(Int, Bike, BikeStatus, Station)], fields: BikeFields)(implicit assetsFinder: AssetsFinder)
+
+@getValue(field: String) = @{
+  formSearch(field).value.getOrElse("")
+}
+
+@main("MU Sloth Bike", assetsFinder) {
+
+  <div class="card border-secondary mb-3">
+    <div class="card-header">Barcode List</div>
+    <div class="card-body text-secondary">
+      <div class="form-row">
+        @assets.map { asset =>
+          <div class="form-group col-md-4 text-center">
+            <img src='https://barcode.tec-it.com/barcode.ashx?data=@asset._2.keyBarcode&code=Code128&multiplebarcodes=true&translate-esc=false&unit=Fit&dpi=96&imagetype=Gif&rotation=0&color=%23000000&bgcolor=%23ffffff&qunit=Mm&quiet=0' class="rounded" alt='Barcode Generator TEC-IT'/>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}

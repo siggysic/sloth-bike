@@ -91,7 +91,7 @@
                     <label>Status</label>
                     <select name="@fields.statusId" class="form-control @validateClass(fields.statusId)" value="@getValue(fields.statusId)">
                       @bikesStatus.map { bs =>
-                        <option value="@bs.id">@bs.status</option>
+                        <option value="@bs.id" @if(bs.id.toString == getValue(fields.statusId)){ selected }>@bs.status</option>
                       }
                     </select>
                     @if(form.errors.find(_.key == fields.statusId).nonEmpty) {
@@ -104,7 +104,7 @@
                     <label>Stations</label>
                     <select name="@fields.stationId" class="form-control @validateClass(fields.stationId)" value="@getValue(fields.stationId)">
                       @stations.map { s =>
-                        <option value="@s.id">@s.name, @s.location</option>
+                        <option value="@s.id" @if(s.id.toString == getValue(fields.stationId)){ selected }>@s.name, @s.location</option>
                       }
                     </select>
                     @if(form.errors.find(_.key == fields.stationId).nonEmpty) {
@@ -119,7 +119,7 @@
                     <button type="submit" class="btn btn-primary btn-block">Submit</button>
                   </div>
                   <div class="form-group col-md-2">
-                    <button type="button" class="btn btn-danger btn-block">Cancel</button>
+                    <a href="@routes.AssetsController.viewAssets()" class="btn btn-danger btn-block">Cancel</a>
                   </div>
                 </div>
             }

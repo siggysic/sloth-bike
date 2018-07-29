@@ -8,22 +8,35 @@ case class Bike(id: String, keyBarcode: Option[String], referenceId: String, lot
                 arrivalDate: Timestamp, pieceNo: String,
                 createdAt: Timestamp = new Timestamp(System.currentTimeMillis()),
                 updatedAt: Timestamp = new Timestamp(System.currentTimeMillis()),
-                statusId: Int, stationId: Int)
+                statusId: Int, stationId: Int) {
+  def toBikeRequest = BikeRequest(
+    id = Some(id), keyBarcode = this.keyBarcode.getOrElse(""), referenceId = this.referenceId, lotNo = this.lotNo,
+    licensePlate = this.licensePlate, detail = this.detail, arrivalDate = new java.util.Date(this.arrivalDate.getTime),
+    pieceNo = this.pieceNo, statusId = this.statusId, stationId = this.stationId
+  )
+}
 
 case class BikeQuery(statusId: Option[Int], page: Int, pageSize: Int)
 
 case class BikeRequest(
-                        keyBarcode: String, referenceId: String, lotNo: String,
+                        id: Option[String], keyBarcode: String, referenceId: String, lotNo: String,
                         licensePlate: String, detail: Option[String], arrivalDate: java.util.Date,
                         pieceNo: String, statusId: Int, stationId: Int
                       ) {
   def toBike = Bike(
-    id = java.util.UUID.randomUUID().toString, keyBarcode = Some(this.keyBarcode), referenceId = this.referenceId,
+    id = this.id.getOrElse(java.util.UUID.randomUUID.toString), keyBarcode = Some(this.keyBarcode), referenceId = this.referenceId,
     lotNo = this.lotNo, licensePlate = this.licensePlate, remark = None, detail = this.detail,
     arrivalDate = new Timestamp(this.arrivalDate.getTime), pieceNo = this.pieceNo,
     statusId = statusId, stationId = stationId
   )
 }
+
+case class BikeImport(
+                              lotNo: String,
+                              detail: Option[String],
+                              statusId: Int,
+                              stationId: Int
+                            )
 
 case class BikeFields(
                        arrivalDate: String = "arrivalDate",
@@ -38,17 +51,17 @@ case class BikeFields(
                      )
 
 case class BikeSearch(
-                       lotNo: Option[String],
-                       pieceNo: Option[String],
-                       licensePlate: Option[String],
-                       keyBarcode: Option[String],
-                       referenceId: Option[String],
-                       statusId: Option[Int]
+                       lotNo: Option[String] = None,
+                       pieceNo: Option[String] = None,
+                       licensePlate: Option[String] = None,
+                       keyBarcode: Option[String] = None,
+                       referenceId: Option[String] = None,
+                       statusId: Option[Int] = None
                      )
 
 
-case class BikeReturnReq(keyBarcode: String, historyId: String, paymentReq: PaymentReturn)
+case class BikeReturnReq(keyBarcode: String, historyId: String, paymentReq: Option[PaymentReturn])
 case class BikeRepairReturnReq(keyBarcode: String)
 
-case class BikeBorrowedReq(keyBarcode: String)
+case class BikeBorrowedReq(studentId: String, keyBarcode: String)
 case class BikeRepairReq(keyBarcode: String)

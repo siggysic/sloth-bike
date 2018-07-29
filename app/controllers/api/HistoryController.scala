@@ -18,7 +18,7 @@ class HistoryController @Inject()(cc: ControllerComponents, historyRepository: H
   implicit val format = DefaultFormats
 
   def getHistoryWithPayment(id: String) = Action.async {
-    historyRepository.getHistoryWithPayment(id)
+    val h = historyRepository.getHistoryWithPayment(id)
     Future.successful(Ok(""))
   }
 
@@ -27,7 +27,7 @@ class HistoryController @Inject()(cc: ControllerComponents, historyRepository: H
     val fine = historyRepository.getLastActionOfStudent(studentId).map {
       case Right(data) =>
         val result = data.map(_.toQueryClass)
-        val historyId = result.map(_.historyId).getOrElse("")
+        val historyId = result.map(_.id).getOrElse("")
         val borrowedDate = result.flatMap(_.borrowDate)
         val fine = borrowedDate.map(b => getDateDiff(b.getTime, System.currentTimeMillis(), TimeUnit.HOURS).toInt).getOrElse(0)
         FineResult(historyId, fine)

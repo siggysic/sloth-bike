@@ -1,14 +1,18 @@
 package repositories
 
 import java.sql.Timestamp
+import java.util.UUID
 
 import exceptions.DBException
 import javax.inject.{Inject, Singleton}
 import models._
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.JdbcProfile
+import slick.lifted.QueryBase
+import slick.sql.SqlProfile.ColumnOption.SqlType
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.reflect.macros.whitebox
 
 trait BikeComponent extends BikeStatusComponent with StationComponent { self: HasDatabaseConfigProvider[JdbcProfile] =>
   import profile.api._
@@ -28,7 +32,7 @@ trait BikeComponent extends BikeStatusComponent with StationComponent { self: Ha
     def stationId = column[Int]("StationId")
 
     def * =
-      (id, keyBarcode, referenceId, licensePlate, lotNo, remark, detail, arrivalDate, pieceNo, createdAt, updatedAt, statusId, stationId) <> ((Bike.apply _).tupled, Bike.unapply)
+      (id, keyBarcode, referenceId, lotNo, licensePlate, remark, detail, arrivalDate, pieceNo, createdAt, updatedAt, statusId, stationId).shaped <> ((Bike.apply _).tupled, Bike.unapply)
 
     def status = foreignKey("Status", statusId, TableQuery[BikeStatusTable])(_.id, onUpdate = ForeignKeyAction.Cascade)
     def station = foreignKey("Station", statusId, TableQuery[Stations])(_.id, onUpdate = ForeignKeyAction.Cascade)
@@ -49,6 +53,16 @@ class BikeRepository @Inject() (protected val dbConfigProvider: DatabaseConfigPr
     db.run(action)
   }
 
+  def createBulk(newBikes: Seq[Bike]): Future[Seq[Int]] = {
+    val action = DBIO.sequence(newBikes.map(row => bike += row))
+    db.run(action)
+  }
+
+  def update(updateBike: Bike): Future[Int] = {
+    val action = bike.filter(_.id === updateBike.id).update(updateBike)
+    db.run(action)
+  }
+
   def getBikes(query: BikeQuery): Future[Seq[Bike]] = {
     val baseQuery = query.statusId match {
       case Some(statusId) =>
@@ -61,21 +75,39 @@ class BikeRepository @Inject() (protected val dbConfigProvider: DatabaseConfigPr
     db.run(action)
   }
 
-  def getBike(id: String): Future[Option[Bike]] = {
-    val action = bike.filter(_.id === id).result.headOption
-    db.run(action)
+  def getBike(id: String): Future[Option[(Bike, BikeStatus, Station)]] = {
+    val action = for {
+      ((b, bs), s) <- bike.filter(_.id === id) join status on (_.statusId === _.id) join station on (_._1.stationId === _.id)
+    } yield (b, bs, s)
+
+    db.run(action.result.headOption)
   }
 
-  def getBikesRelational(query: BikeQuery): Future[Seq[(Int, Bike, BikeStatus, Station)]] = {
-    val total = bike.length
-    val validateStatusId = query.statusId match {
-      case Some(statusId) =>
-        bike.filter(_.statusId === statusId)
-      case None => bike
-    }
+  def getBikesRelational(query: BikeQuery): Future[Seq[(Int, Bike, BikeStatus, Station)]] =
+    getBikePagination(bike, query)
 
-    val offset = (query.page - 1) * query.pageSize
-    val bikePagination = validateStatusId.drop(offset).take(query.pageSize)
+  def searchBikes(bikeSearch: BikeSearch, bikeQuery: BikeQuery) = {
+    val convert = (opt: Option[Any]) => opt.map(o => s"%$o%").getOrElse("%%")
+
+    val querySearch = bike
+      .filter(_.pieceNo like(convert(bikeSearch.pieceNo)))
+      .filter(_.lotNo like(convert(bikeSearch.lotNo)))
+      .filter(_.licensePlate like(convert(bikeSearch.licensePlate)))
+      .filter(_.keyBarcode like(convert(bikeSearch.keyBarcode)))
+      .filter(_.referenceId like(convert(bikeSearch.referenceId)))
+
+    val querySearchWithStatus = if(bikeSearch.statusId.nonEmpty) querySearch.filter(_.statusId === bikeSearch.statusId.get)
+    else querySearch
+
+    getBikePagination(querySearchWithStatus, bikeQuery)
+  }
+
+  private def getBikePagination(query: Query[Bikes, Bikes#TableElementType, Seq], bikeQuery: BikeQuery) = {
+
+    val total = query.length
+
+    val offset = (bikeQuery.page - 1) * bikeQuery.pageSize
+    val bikePagination = query.drop(offset).take(bikeQuery.pageSize)
 
     val action =  for {
       ((b, bs), s) <- bikePagination join status on (_.statusId === _.id) join station on (_._1.stationId === _.id)

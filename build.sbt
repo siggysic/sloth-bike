@@ -21,5 +21,15 @@ libraryDependencies ++= Seq(
   "com.typesafe.play" %% "play-slick-evolutions" % "3.0.0"
 )
 
+libraryDependencies ++= Seq(
+  "org.apache.poi" % "poi" % "3.17",
+  "org.apache.poi" % "poi" % "3.17",
+  "org.apache.poi" % "poi-ooxml" % "3.17",
+  "org.apache.poi" % "poi-ooxml-schemas" % "3.17"
+)
+
 libraryDependencies += "net.liftweb" %% "lift-json" % "3.3.0"
 
+libraryDependencies += "io.igl" %% "jwt" % "1.2.2"
+
+routesImport += "binders.Binders._"

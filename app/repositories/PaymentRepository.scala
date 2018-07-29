@@ -23,7 +23,7 @@ trait PaymentComponent { self: HasDatabaseConfigProvider[JdbcProfile] =>
     def parentId = column[Option[String]]("ParentId")
 
     def * =
-      (id, overtimeFine, defectFine, note.?, createdAt, updatedAt, parentId) <> ((Payment.apply _).tupled, Payment.unapply)
+      (id, overtimeFine, defectFine, note.?, createdAt, updatedAt, parentId).shaped <> ((Payment.apply _).tupled, Payment.unapply)
 
     def payment =
       foreignKey("payment", parentId, TableQuery[Payments])(_.id.?, onUpdate = ForeignKeyAction.Cascade, onDelete = ForeignKeyAction.Cascade)
@@ -68,7 +68,7 @@ class PaymentRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
   }
 
    def createRecover(payment: Payment) = {
-    val action = this.payment.returning(this.payment.map(_.id)) += payment
+    val action = this.payment += payment
     db.run(action).map(Right.apply).recover {
       case _: Exception => Left(DBException)
     }

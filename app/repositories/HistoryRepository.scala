@@ -30,7 +30,7 @@ trait HistoryComponent extends BikeComponent
     def bikeId = column[String]("BikeId")
     def paymentId = column[Option[String]]("PaymentId")
     def * =
-      (id, studentId, remark, borrowDate, returnDate, createdAt, updatedAt, stationId, statusId, bikeId, paymentId) <>
+      (id, studentId, remark, borrowDate, returnDate, createdAt, updatedAt, stationId, statusId, bikeId, paymentId).shaped <>
         ((History.apply _).tupled, History.unapply)
 
     def bike = foreignKey("Bike", bikeId, TableQuery[Bikes])(_.id, onUpdate = ForeignKeyAction.Cascade)
@@ -54,8 +54,8 @@ class HistoryRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
   private val payment = TableQuery[Payments]
   private val student = TableQuery[Students]
 
-  def create(newHistory: History): Future[String] = {
-    val action = history.returning(history.map(_.id)) += newHistory
+  def create(newHistory: History): Future[Int] = {
+    val action = history += newHistory
     db.run(action)
   }
 
@@ -83,7 +83,7 @@ class HistoryRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
     db.run(action)
   }
 
-  def getHistories(query: HistoryQuery): Future[Seq[((((History, Option[Bike]), Option[BikeStatus]), Option[(String, Option[Int])]), Option[Station])]] = {
+  def getHistories(query: HistoryQuery): Future[Seq[(Int, ((((History, Option[Bike]), Option[BikeStatus]), Option[(String, Option[Int])]), Option[Station]))]] = {
     val queryBase = history.joinLeft(bike).on(_.bikeId === _.id)
       .joinLeft(status).on(_._1.statusId === _.id)
       .joinLeft(
@@ -127,13 +127,21 @@ class HistoryRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
       case None => filteredFromDate
     }
 
-    val fullQuery = filteredToDate
+    val filteredBikeId = query.bikeId match {
+      case Some(id) =>
+        filteredToDate.filter(_._1._1._1._2.map(_.id like id))
+      case None => filteredToDate
+    }
+
+    val fullQuery = filteredBikeId
+
+    val total = fullQuery.length
 
     val action = for {
-      query <- fullQuery.drop((query.page - 1) * query.pageSize).take(query.pageSize).result
-    } yield query
+      query <- fullQuery.drop((query.page - 1) * query.pageSize).take(query.pageSize)
+    } yield (total, query)
 
-    db.run(action)
+    db.run(action.result)
   }
 
   def getLastActionOfStudent(studentId: String): Future[Either[DBException.type, Option[(History, BikeStatus)]]] = {
@@ -164,7 +172,7 @@ class HistoryRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
 
   def update(historyId: String, paymentId: Option[String]) = {
     val returnDate = new Timestamp(System.currentTimeMillis())
-    val action = history.map(h => (h.returnDate, h.paymentId)).update((Some(returnDate), paymentId))
+    val action = history.filter(_.id === historyId).map(h => (h.returnDate, h.paymentId)).update(Some(returnDate), paymentId)
     db.run(action) map Right.apply recover {
       case _: Exception => Left(DBException)
     }

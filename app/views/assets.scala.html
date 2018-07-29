@@ -1,64 +1,109 @@
-@(assets: Seq[(Int, Bike, BikeStatus, Station)], fields: BikeFields, pageSize: PageSize)(implicit assetsFinder: AssetsFinder)
+@(formSearch: Form[BikeSearch], assets: Seq[(Int, Bike, BikeStatus, Station)], fields: BikeFields, pageSize: PageSize, status: Seq[BikeStatus])(implicit assetsFinder: AssetsFinder)
+
+@getValue(field: String) = @{
+  formSearch(field).value.getOrElse("")
+}
 
 @main("MU Sloth Bike", assetsFinder) {
 
-  <div class="card border-secondary mb-3" style="max-width: 18rem;">
-    <div class="card-header">Asset List</div>
-    <div class="card-body text-secondary">
-    @helper.form(action = routes.AssetsController.searchAssets()) {
-      <div class="form-row">
-        <div class="form-group col-md-4">
-          <label>เลขครุภัณฑ์</label>
-          <input name="@fields.pieceNo" type="text" class="form-control" placeholder="หมายเลขล็อต">
+  @helper.form(action = routes.AssetsController.searchOrPrintBarcode(BikeSearch())) {
+    <div class="card border-secondary mb-3">
+      <div class="card-header">Asset List</div>
+      <div class="card-body text-secondary">
+        <div class="form-row">
+          <div class="form-group col-md-4">
+            <label>เลขครุภัณฑ์</label>
+            <input name="@fields.pieceNo" type="text" class="form-control" placeholder="เลขครุภัณฑ์" value="@getValue(fields.pieceNo)">
+          </div>
+          <div class="form-group col-md-4">
+            <label>ป้ายทะเบียน</label>
+            <input name="@fields.licensePlate" type="text" class="form-control" placeholder="ป้ายทะเบียน" value="@getValue(fields.licensePlate)">
+          </div>
+          <div class="form-group col-md-4">
+            <label>Status</label>
+            <select name="@fields.statusId" class="form-control" value="@getValue(fields.statusId)">
+            <option value="-1">==choose status==</option>
+            @status.map { bs =>
+              <option value="@bs.id" @if(bs.id.toString == getValue(fields.statusId)){ selected }>@bs.status</option>
+            }
+            </select>
+          </div>
         </div>
-        <div class="form-group col-md-4">
-          <label>ป้ายทะเบียน</label>
-          <input name="@fields.licensePlate" type="text" class="form-control" placeholder="ป้ายทะเบียน">
+        <div class="form-row">
+          <div class="form-group col-md-4">
+            <label>Key Barcode</label>
+            <input name="@fields.keyBarcode" type="text" class="form-control" placeholder="Key Barcode" value="@getValue(fields.keyBarcode)">
+          </div>
+          <div class="form-group col-md-4">
+            <label>RFID</label>
+            <input name="@fields.referenceId" type="text" class="form-control" placeholder="RFID" value="@getValue(fields.referenceId)">
+          </div>
         </div>
-        <div class="form-group col-md-4">
-          <label>Status</label>
-          <input name="@fields.statusId" type="text" class="form-control" placeholder="Status">
+        <div class="form-row">
+          <div class="form-group col-md-4">
+            <label>หมายเลขล็อต</label>
+            <input name="@fields.lotNo" type="text" class="form-control" placeholder="หมายเลขล็อต" value="@getValue(fields.lotNo)">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-md-8"></div>
+          <div class="form-group col-md-2">
+            <button type="submit" name="submit-action" value="search" class="btn btn-primary btn-block">Search</button>
+          </div>
+          <div class="form-group col-md-2">
+            <a href="@routes.AssetsController.viewAssets()" class="btn btn-danger btn-block">Reset</a>
+          </div>
         </div>
       </div>
-      <div class="form-row">
-        <div class="form-group col-md-4">
-          <label>Key Barcode</label>
-          <input name="@fields.keyBarcode" type="text" class="form-control" placeholder="Key Barcode">
-        </div>
-        <div class="form-group col-md-4">
-          <label>RFID</label>
-          <input name="@fields.referenceId" type="text" class="form-control" placeholder="RFID">
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group col-md-4">
-          <label>หมายเลขล็อต</label>
-          <input name="@fields.lotNo" type="text" class="form-control" placeholder="หมายเลขล็อต">
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group col-md-8"></div>
-        <div class="form-group col-md-2">
-          <button type="button" class="btn btn-primary btn-block">Search</button>
-        </div>
-        <div class="form-group col-md-2">
-          <button type="button" class="btn btn-danger btn-block">Reset</button>
-        </div>
-      </div>
-    }
     </div>
-  </div>
+    <div class="form-row">
+      <div class="form-group col-md-2">
+        <a href="@routes.AssetsController.viewInsertAssets()" class="btn btn-success btn-block">Add new</a>
+      </div>
+      <div class="form-group col-md-2">
+        <a href="@routes.AssetsController.viewImportAssets()" class="btn btn-info btn-block">Import</a>
+      </div>
+      <div class="form-group col-md-6"></div>
+      <div class="form-group col-md-2">
+        <button type="submit" name="submit-action" value="print-barcode" class="btn btn-warning btn-block">Print barcode</button>
+      </div>
+    </div>
+  }
 
-  @table(pageSize, assets.headOption.map(_._1).getOrElse(0)) {
-    @assets.map { asset =>
-      <tr>
-        <td>@asset._2.pieceNo</td>
-        <td>@asset._2.keyBarcode</td>
-        <td>@asset._2.licensePlate</td>
-        <td>@asset._2.referenceId</td>
-        <td>@asset._3.status</td>
-        <td>@asset._2.remark</td>
-      </tr>
+  @table(List("เลขครุภัณฑ์", "Key Barcode", "ป้ายทะเบียน", "RFID", "Status", "Remark"),
+    assets.map(asset => (
+        routes.AssetsController.viewEditAssets(asset._2.id.toString),
+        asset._2.pieceNo :: asset._2.keyBarcode :: asset._2.licensePlate :: asset._2.referenceId ::
+                asset._3.status :: asset._2.remark :: Nil
+      )
+    ))
+
+  @assets.headOption.map { asset =>
+    @defining((asset._1 / pageSize.size.toDouble).ceil) { page =>
+      <nav aria-label="Page navigation example">
+        <ul class="pagination justify-content-center">
+          @if(pageSize.page != 1) {
+            <li class="page-item">
+              <a class="page-link" href="@routes.AssetsController.searchOrPrintBarcode(formSearch.value.getOrElse(BikeSearch()), pageSize.page-1)" aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+                <span class="sr-only">Previous</span>
+              </a>
+            </li>
+          }
+          @for(i <- pageSize.page - 2 to pageSize.page + 2 if i > 0 && i < page.toInt) {
+            <li class="page-item @if(i == pageSize.page) { active }">
+              <a class="page-link" href="@routes.AssetsController.searchOrPrintBarcode(formSearch.value.getOrElse(BikeSearch()), i)">@i</a></li>
+          }
+          @if(pageSize.page != page.toInt) {
+            <li class="page-item">
+              <a class="page-link" href="@routes.AssetsController.searchOrPrintBarcode(formSearch.value.getOrElse(BikeSearch()), pageSize.page+1)" aria-label="Next">
+                <span aria-hidden="true">&raquo;</span>
+                <span class="sr-only">Next</span>
+              </a>
+            </li>
+          }
+        </ul>
+      </nav>
     }
   }
 

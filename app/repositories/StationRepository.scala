@@ -15,7 +15,7 @@ trait StationComponent { self: HasDatabaseConfigProvider[JdbcProfile] =>
     def name = column[String]("Name")
     def location = column[String]("Location")
 
-    def * = (id.?, name, location) <> ((Station.apply _).tupled, Station.unapply)
+    def * = (id.?, name, location).shaped <> ((Station.apply _).tupled, Station.unapply)
   }
 }
 
@@ -62,6 +62,11 @@ class StationRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
 
   def getStations: Future[Seq[Station]] = {
     val action = stations.result
+    db.run(action)
+  }
+
+  def getStation(id: Int): Future[Option[Station]] = {
+    val action = stations.filter(_.id === id).result.headOption
     db.run(action)
   }
 }
