@@ -1,13 +1,18 @@
 package utils
 
+import cats.data.EitherT
 import io.igl.jwt._
 import models.{Response, UnauthorizedException}
 import net.liftweb.json.{DefaultFormats, JObject, JValue}
 import play.api.libs.json.{JsNumber, JsString, JsValue}
 import play.api.mvc._
+import models.DBException
+import cats.implicits._
+import controllers.AssetsFinder
 
 import scala.concurrent.Future
 import scala.util.{Success, Try}
+import scala.concurrent.ExecutionContext.Implicits.global
 
 case class ClaimSet(station_id: StationId, station_name: StationName, station_location: StationLocation) {
   def toSeq = Seq(station_id, station_name, station_location)
@@ -52,6 +57,32 @@ object StationLocation extends ClaimField {
 }
 
 object Helpers {
+
+  object EitherHelper extends Controller {
+    implicit class CatchDatabaseExp[T](fe: Future[Either[DBException.type, T]])(implicit assetsFinder: AssetsFinder, request: Request[AnyContent]) {
+      def dbExpToEitherT = {
+        val fet = fe.map { e =>
+          e match {
+            case Right(value) => Right(value)
+            case Left(_) => Left(InternalServerError(views.html.exception("Database exception.")))
+          }
+        }
+        EitherT(fet)
+      }
+    }
+
+    implicit class CatchDatabaseExpWithoutResult[T](fe: Future[Either[DBException.type, T]]) {
+      def dbExpToEitherT = EitherT(fe)
+    }
+
+    implicit class ExtractEitherT(fr: EitherT[Future, Result, Result]) {
+      def extract = fr.value.map {
+        case Right(pass) => pass
+        case Left(fail) => fail
+      }
+    }
+  }
+
   object JsonHelper {
     implicit val format = DefaultFormats
 

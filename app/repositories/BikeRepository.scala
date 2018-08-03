@@ -74,12 +74,22 @@ class BikeRepository @Inject() (protected val dbConfigProvider: DatabaseConfigPr
     db.run(action)
   }
 
-  def getBike(id: String): Future[Option[(Bike, BikeStatus, Station)]] = {
+  def getBike(id: String): Future[Either[DBException.type, Option[(Bike, BikeStatus, Station)]]] = {
     val action = for {
       ((b, bs), s) <- bike.filter(_.id === id) join status on (_.statusId === _.id) join station on (_._1.stationId === _.id)
     } yield (b, bs, s)
 
-    db.run(action.result.headOption)
+    db.run(action.result.headOption).map(Right.apply).recover {
+      case _: Exception => Left(DBException)
+    }
+  }
+
+  def countBikeByStatusId(id: Int): Future[Either[DBException.type, Int]] = {
+    val action = bike.filter(_.statusId === id)
+
+    db.run(action.length.result).map(Right.apply).recover {
+      case _: Exception => Left(DBException)
+    }
   }
 
   def getBikeTotal(): Future[Int] = {
@@ -88,7 +98,7 @@ class BikeRepository @Inject() (protected val dbConfigProvider: DatabaseConfigPr
     db.run(action.result)
   }
 
-  def getBikesRelational(query: BikeQuery): Future[Seq[(Int, Bike, BikeStatus, Station)]] =
+  def getBikesRelational(query: BikeQuery): Future[Either[DBException.type, Seq[(Int, Bike, BikeStatus, Station)]]] =
     getBikePagination(bike, query)
 
   def searchBikes(bikeSearch: BikeSearch, bikeQuery: BikeQuery) = {
@@ -118,7 +128,9 @@ class BikeRepository @Inject() (protected val dbConfigProvider: DatabaseConfigPr
       ((b, bs), s) <- bikePagination join status on (_.statusId === _.id) join station on (_._1.stationId === _.id)
     } yield (total, b, bs, s)
 
-    db.run(action.result)
+    db.run(action.result).map(Right.apply).recover {
+      case _: Exception => Left(DBException)
+    }
   }
 
   def updateByKeyBarcode(keyBarcode: String, statusId: Int) = {

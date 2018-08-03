@@ -1,4 +1,4 @@
-@(formSearch: Form[BikeSearch], assets: Seq[(Int, Bike, BikeStatus, Station)], fields: BikeFields, pageSize: PageSize, status: Seq[BikeStatus])(implicit assetsFinder: AssetsFinder)
+@(formSearch: Form[BikeSearch], assets: Seq[(Int, Bike, BikeStatus, Station)], fields: BikeFields, pageSize: PageSize, status: Seq[BikeStatus])(implicit assetsFinder: AssetsFinder, request: Request[AnyContent])
 
 @getValue(field: String) = @{
   formSearch(field).value.getOrElse("")

@@ -1,7 +1,7 @@
 package repositories
 
 import javax.inject.{Inject, Singleton}
-import models.{Station, StationQuery}
+import models.{DBException, Station, StationQuery}
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.JdbcProfile
 
@@ -60,9 +60,11 @@ class StationRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
     db.run(action).flatMap(s => db.run(totalAction).map(total => (s, total)))
   }
 
-  def getStations: Future[Seq[Station]] = {
+  def getStations: Future[Either[DBException.type, Seq[Station]]] = {
     val action = stations.result
-    db.run(action)
+    db.run(action).map(Right.apply).recover {
+      case _: Exception => Left(DBException)
+    }
   }
 
   def getStation(id: Int): Future[Option[Station]] = {

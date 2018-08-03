@@ -1,7 +1,7 @@
 @import scala.Predef.double2Double
 @(bike: (Bike, BikeStatus, Station),
         history: Seq[(Int, History, Option[BikeStatus], Option[(String, Option[Int])])],
-        pageSize: PageSize)(implicit assetsFinder: AssetsFinder)
+        pageSize: PageSize)(implicit assetsFinder: AssetsFinder, request: Request[AnyContent])
 
 @main("MU Sloth Bike", assetsFinder) {
 

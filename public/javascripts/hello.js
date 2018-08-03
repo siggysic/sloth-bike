@@ -9,10 +9,6 @@ $(document).ready(function() {
 
 });
 
-if (window.console) {
-  console.log("Welcome to your Play application's JavaScript!");
-}
-
 $(document).ready(function() {
     var currentId;
     $("#paymentTable td button").click(function() {

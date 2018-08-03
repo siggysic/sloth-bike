@@ -13,6 +13,9 @@ import utils.ClaimSet
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import cats.implicits._
+import controllers.AssetsFinder
+import utils.Helpers.EitherHelper.{CatchDatabaseExpWithoutResult, ExtractEitherT}
 
 class StationController @Inject()(stationRepository: StationRepository) extends Response {
 
@@ -25,9 +28,11 @@ class StationController @Inject()(stationRepository: StationRepository) extends 
   )
 
   def getStations = Action.async {
-    val stations: Future[Either[CustomException, Seq[Station]]] = for {
-      st <- stationRepository.getStations
-    } yield Right(st)
+    val stations: Future[Either[CustomException, Seq[Station]]] = (
+      for {
+        st <- stationRepository.getStations.dbExpToEitherT
+      } yield st
+    ).value
 
     response(stations)
   }

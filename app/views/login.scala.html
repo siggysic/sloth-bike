@@ -1,0 +1,63 @@
+@(form: Form[Login], fields: LoginFields, graph: GraphLogin)(implicit assetsFinder: AssetsFinder, request: Request[AnyContent])
+
+@validateClass(field: String) = @{
+  if(form.errors.find(_.key == field).nonEmpty){"is-invalid"}
+  else ""
+}
+
+@errorClass(form: Form[Login], fieldName: String) = @{
+  if(form.error(fieldName).isDefined) {
+    "is-invalid"
+  } else {
+    ""
+  }
+}
+
+@mainNoNavbar("MU Sloth Bike", assetsFinder) {
+  <div>
+    <div class="row">
+      @*<div class="col-md-4">*@
+        @*<img src="@assetsFinder.path("images/sloth-cycling-team.png")" class="img-fluid" alt="Sloth bike">*@
+      @*</div>*@
+      <div class="col">
+        <h1  class="text-center">MU Sloth Bike</h1>
+      </div>
+    </div>
+    <hr>
+
+    <div class="row">
+      <div class="col">
+        <div class="chart-container">
+          <canvas id="myChart"></canvas>
+        </div>
+      </div>
+    </div>
+    @helper.form(action = routes.LoginController.doLogin()) {
+      <input type="hidden" id="available" value="@graph.available">
+      <input type="hidden" id="outOfOrder" value="@graph.outOfOrder">
+      <input type="hidden" id="borrowOneDay" value="@graph.borrowOneDay">
+      <input type="hidden" id="borrowMoreThanOne" value="@graph.borrowMoreThanOne">
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" name="@fields.username" class="form-control @validateClass(fields.username)" placeholder="Username">
+        @if(form.errors.find(_.key == fields.username).nonEmpty) {
+          <div class="invalid-feedback">
+          @form.errors(fields.username).map(_.message)
+          </div>
+        }
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" name="@fields.password" class="form-control @validateClass(fields.password)" placeholder="Password">
+        @if(form.errors.find(_.key == fields.password).nonEmpty) {
+          <div class="invalid-feedback">
+          @form.errors(fields.password).map(_.message)
+          </div>
+        }
+      </div>
+      <button type="submit" class="btn btn-primary">Submit</button>
+    }
+  </div>
+}
+
+<script src="@assetsFinder.path("javascripts/ChartCustom.js")"></script>

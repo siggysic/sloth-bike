@@ -1,4 +1,4 @@
-@(payments: Seq[FullPayment])(implicit assetsFinder: AssetsFinder)
+@(payments: Seq[FullPayment])(implicit assetsFinder: AssetsFinder, request: Request[AnyContent])
 
 @scripts = {
     <script src="@assetsFinder.path("javascripts/hello.js")"></script>

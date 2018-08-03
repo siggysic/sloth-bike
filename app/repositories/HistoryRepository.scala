@@ -3,9 +3,8 @@ package repositories
 import java.sql.Timestamp
 import java.util.UUID
 
-import exceptions.DBException
 import javax.inject.{Inject, Singleton}
-import models._
+import models.{DBException, _}
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.JdbcProfile
 
@@ -83,7 +82,7 @@ class HistoryRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
     db.run(action)
   }
 
-  def getHistories(query: HistoryQuery): Future[Seq[(Int, ((((History, Option[Bike]), Option[BikeStatus]), Option[(String, Option[Int])]), Option[Station]))]] = {
+  def getHistories(query: HistoryQuery): Future[Either[DBException.type, Seq[(Int, ((((History, Option[Bike]), Option[BikeStatus]), Option[(String, Option[Int])]), Option[Station]))]]] = {
     val queryBase = history.joinLeft(bike).on(_.bikeId === _.id)
       .joinLeft(status).on(_._1.statusId === _.id)
       .joinLeft(
@@ -141,7 +140,9 @@ class HistoryRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
       query <- fullQuery.drop((query.page - 1) * query.pageSize).take(query.pageSize)
     } yield (total, query)
 
-    db.run(action.result)
+    db.run(action.result).map(Right.apply).recover {
+      case _: Exception => Left(DBException)
+    }
   }
 
   def getLastActionOfStudent(studentId: String): Future[Either[DBException.type, Option[(History, BikeStatus)]]] = {

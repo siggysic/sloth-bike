@@ -10,6 +10,8 @@ GET     /count                      controllers.CountController.count
 GET     /message                    controllers.AsyncController.message
 
 # View
+GET     /login                      controllers.LoginController.viewLogin
+
 GET     /assets                     controllers.AssetsController.viewAssets(page: Int ?= 1)
 GET     /assets/insert              controllers.AssetsController.viewInsertAssets
 GET     /assets/import              controllers.AssetsController.viewImportAssets
@@ -23,6 +25,9 @@ POST    /asset/edit                 controllers.AssetsController.editAssets
 + nocsrf
 POST    /asset/upload               controllers.AssetsController.uploadAssets
 GET     /asset/search-barcode       controllers.AssetsController.searchOrPrintBarcode(search: models.BikeSearch, page: Int ?= 1)
+
++ nocsrf
+POST    /login                      controllers.LoginController.doLogin
 
 GET     /stations                   controllers.StationController.viewStations(name: Option[String] ?= None, available: Option[Int] ?= None, page: Int ?= 1)
 + nocsrf

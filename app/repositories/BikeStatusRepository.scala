@@ -1,8 +1,7 @@
 package repositories
 
-import exceptions.DBException
 import javax.inject.{Inject, Singleton}
-import models.BikeStatus
+import models.{BikeStatus, DBException}
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.JdbcProfile
 
@@ -33,9 +32,11 @@ class BikeStatusRepository @Inject() (protected val dbConfigProvider: DatabaseCo
     db.run(action)
   }
 
-  def getStatus: Future[Seq[BikeStatus]] = {
+  def getStatus: Future[Either[DBException.type, Seq[BikeStatus]]] = {
     val action = bikeStatus.result
-    db.run(action)
+    db.run(action).map(Right.apply).recover {
+      case _: Exception => Left(DBException)
+    }
   }
 
   def getStatusByText(status: String): Future[Either[DBException.type, Option[BikeStatus]]] = {

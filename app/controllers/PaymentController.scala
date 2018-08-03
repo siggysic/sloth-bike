@@ -2,13 +2,13 @@ package controllers
 
 import javax.inject.Inject
 import models.FullPayment
-import play.api.mvc.{Action, Controller}
+import play.api.mvc.{Action, AnyContent, Controller, Request}
 import repositories.PaymentRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class PaymentController @Inject()(paymentRepository: PaymentRepository)(implicit assets: AssetsFinder) extends Controller {
-  def getPayments() = Action.async {
+  def getPayments() = Action.async { implicit request: Request[AnyContent] =>
 
     paymentRepository.getFullPayment("","","").map { data =>
       Ok(views.html.payments(data.map(record => FullPayment(record._1.getOrElse(""), record._2, record._3,
