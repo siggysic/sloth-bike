@@ -2,7 +2,7 @@ package models
 
 import net.liftweb.json._
 import net.liftweb.json.JsonAST.JValue
-import play.api.libs.json.Json
+import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Controller, Result, Results}
 
 import scala.concurrent.Future
@@ -34,9 +34,18 @@ trait Response extends Controller {
     data.map {
       case Right(value) =>
         status(Json.parse(compactRender(Extraction.decompose(SuccessResponse(Extraction.decompose(value), status.header.status)))))
-      case Left(cExp: CustomException) => status(Json.parse(compactRender(Extraction.decompose(ErrorResponse(Extraction.decompose(cExp.getMsg), cExp.getStatus)))))
+      case Left(cExp: CustomException) => responseStatus(Json.parse(compactRender(Extraction.decompose(ErrorResponse(Extraction.decompose(cExp.getMsg), cExp.getStatus)))), cExp.getStatus)
       case _ => InternalServerError(Json.parse(compactRender(Extraction.decompose(ErrorResponse(Extraction.decompose("Unexpecting exception.." :: Nil), 500)))))
     }
+  }
+
+  private def responseStatus(jsValue: JsValue, status: Int): Result = status match {
+    case 200 => Ok(jsValue)
+    case 201 => Created(jsValue)
+    case 400 => BadRequest(jsValue)
+    case 401 => Unauthorized(jsValue)
+    case 404 => NotFound(jsValue)
+    case _ => InternalServerError(jsValue)
   }
 
 }

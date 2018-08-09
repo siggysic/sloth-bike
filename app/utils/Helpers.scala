@@ -98,7 +98,7 @@ object Helpers {
     private def verifyJWT[W](block: Request[W] => Future[Result])(req: Request[W]): Future[Result] =
       decode(req.headers.get("Authorization").getOrElse("")) match {
         case Success(_) => block(req)
-        case _ => response(Future.successful(Left(UnauthorizedException)), Results.Unauthorized)
+        case _ => response(Future.successful(Left(UnauthorizedException)))
       }
 
     def encode(cs: ClaimSet): String = new DecodedJwt(Seq(Alg(algorithm), Typ("JWT")), cs.toSeq).encodedAndSigned(secret)

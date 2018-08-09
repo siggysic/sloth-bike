@@ -28,10 +28,10 @@ class StationController @Inject()(stationRepository: StationRepository) extends 
   )
 
   def getStations = Action.async {
-    val stations: Future[Either[CustomException, Seq[Station]]] = (
+    val stations: Future[Either[CustomException, Stations]] = (
       for {
         st <- stationRepository.getStations.dbExpToEitherT
-      } yield st
+      } yield Stations(st)
     ).value
 
     response(stations)
