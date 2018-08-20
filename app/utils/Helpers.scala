@@ -84,7 +84,7 @@ object Helpers {
   }
 
   object JsonHelper {
-    implicit val format = DefaultFormats
+    implicit private val format = DefaultFormats
 
     implicit class ExtendJsValue(json: JsValue) {
       def toJValue: JValue = Try(net.liftweb.json.parse(json.toString())).getOrElse(JObject(Nil))

@@ -42,7 +42,6 @@ $(document).ready(function() {
     });
 
     $("#submitUpdate").click(function() {
-        console.log("XD");
        var data = $("#paymentModal form").serializeArray();
 
        var json = {};
@@ -56,12 +55,9 @@ $(document).ready(function() {
             type: 'POST',
             url: '/api/payments',
             success: function(data) {
-                console.log("Success");
+                document.location.href = "/payments"
             }
        })
-
-       console.log(json);
-
     });
 
 })

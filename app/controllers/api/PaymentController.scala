@@ -17,6 +17,7 @@ class PaymentController @Inject()(cc: ControllerComponents, paymentRepo: Payment
   extends AbstractController(cc) {
 
   import utils.Helpers.JsonHelper._
+  implicit private val format = DefaultFormats
 
   def getPayment(id: String) = Action.async {
     val a = new Timestamp(System.currentTimeMillis())

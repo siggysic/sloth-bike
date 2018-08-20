@@ -15,7 +15,7 @@ trait StudentComponent { self: HasDatabaseConfigProvider[JdbcProfile] =>
     def major = column[String]("Major")
     def profilePicture = column[String]("ProfilePicture")
 
-    def * = (id, firstName, lastName, major, profilePicture) <> ((Student.apply _).tupled, Student.unapply)
+    def * = (id, firstName, lastName, major, profilePicture).shaped <> ((Student.apply _).tupled, Student.unapply)
   }
 }
 

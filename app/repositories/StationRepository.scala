@@ -15,7 +15,7 @@ trait StationComponent { self: HasDatabaseConfigProvider[JdbcProfile] =>
     def name = column[String]("Name")
     def location = column[String]("Location")
 
-    def * = (id.?, name, location) <> ((Station.apply _).tupled, Station.unapply)
+    def * = (id.?, name, location).shaped <> ((Station.apply _).tupled, Station.unapply)
   }
 }
 
