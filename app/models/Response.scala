@@ -24,6 +24,8 @@ case class NotFoundException(topic: String) extends CustomException(s"$topic not
 
 case object UnauthorizedException extends CustomException("Token is invalid" :: Nil, 401)
 
+case object InternalServverException extends CustomException("Unknown exception." :: Nil, 500)
+
 case object DBException extends CustomException("Database exception" :: Nil, 400)
 
 trait Response extends Controller {

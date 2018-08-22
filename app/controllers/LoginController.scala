@@ -1,5 +1,8 @@
 package controllers
 
+import java.sql.Timestamp
+import java.util.Calendar
+
 import cats.data.EitherT
 import cats.implicits._
 import javax.inject.Inject
@@ -12,6 +15,7 @@ import utils.Helpers.EitherHelper
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import java.util.Date
 import utils.Helpers.EitherHelper.{CatchDatabaseExp, ExtractEitherT}
 
 class LoginController @Inject()(cc: ControllerComponents, bikeRepo: BikeRepository,
@@ -29,6 +33,9 @@ class LoginController @Inject()(cc: ControllerComponents, bikeRepo: BikeReposito
   val fields = LoginFields()
 
   def viewLogin() = Action.async { implicit request: Request[AnyContent] =>
+    val c = Calendar.getInstance
+    c.setTime(new Date())
+    c.add(Calendar.DATE, 1)
     (
       for {
         status <- bikeStatusRepository.getStatus.map { es =>
@@ -42,7 +49,9 @@ class LoginController @Inject()(cc: ControllerComponents, bikeRepo: BikeReposito
 
         bikeAvail <- bikeRepo.countBikeByStatusId(status._1.map(_.id).getOrElse(0)).dbExpToEitherT
         bikeOut <- bikeRepo.countBikeByStatusId(status._2.map(_.id).getOrElse(0)).dbExpToEitherT
-      } yield Ok(views.html.login(loginForm, fields, GraphLogin(bikeAvail, bikeOut, 1, 1)))
+        borrowOneDay <- bikeRepo.getTotalBikeBorrow("Borrowed", new Timestamp(c.getTime.getTime)).dbExpToEitherT
+        borrowMoreThanOne <- bikeRepo.getTotalBikeBorrow("Borrowed", new Timestamp(c.getTime.getTime), false).dbExpToEitherT
+      } yield Ok(views.html.login(loginForm, fields, GraphLogin(bikeAvail, bikeOut, borrowOneDay, borrowMoreThanOne)))
     ).extract
   }
 

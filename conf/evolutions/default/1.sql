@@ -58,7 +58,7 @@ CREATE TABLE payments (
 
 CREATE TABLE histories (
     Id VARCHAR(255) NOT NULL PRIMARY KEY,
-    StudentId VARCHAR(255) NOT NULL,
+    StudentId VARCHAR(255),
     Remark VARCHAR(255),
     BorrowDate TIMESTAMP,
     ReturnDate TIMESTAMP,

@@ -1,12 +1,14 @@
 package utils
 
+import java.text.SimpleDateFormat
+import java.util.{Calendar, Date}
+
 import cats.data.EitherT
 import io.igl.jwt._
-import models.{Response, UnauthorizedException}
+import models._
 import net.liftweb.json.{DefaultFormats, JObject, JValue}
 import play.api.libs.json.{JsNumber, JsString, JsValue}
 import play.api.mvc._
-import models.DBException
 import cats.implicits._
 import controllers.AssetsFinder
 
@@ -19,6 +21,11 @@ case class ClaimSet(station_id: StationId, station_name: StationName, station_lo
 }
 
 object ClaimSet {
+  def apply(jwt: Jwt): Option[ClaimSet] = for {
+    sId <- jwt.getClaim[StationId]
+    sName <- jwt.getClaim[StationName]
+    sLocal <- jwt.getClaim[StationLocation]
+  } yield apply(sId, sName, sLocal)
   def apply(n: Int, u: String, e: String): ClaimSet = ClaimSet(StationId(n), StationName(u), StationLocation(e))
   def expected: Set[ClaimField] = Set(StationId, StationName, StationLocation)
 }
@@ -59,13 +66,35 @@ object StationLocation extends ClaimField {
 object Helpers {
 
   object EitherHelper extends Controller {
-    implicit class CatchDatabaseExp[T](fe: Future[Either[DBException.type, T]])(implicit assetsFinder: AssetsFinder, request: Request[AnyContent]) {
+    implicit class CatchDatabaseExp[T](fe: Future[Either[CustomException, T]])(implicit assetsFinder: AssetsFinder, request: Request[AnyContent]) {
       def dbExpToEitherT = {
         val fet = fe.map { e =>
           e match {
             case Right(value) => Right(value)
             case Left(_) => Left(InternalServerError(views.html.exception("Database exception.")))
           }
+        }
+        EitherT(fet)
+      }
+
+      def expToEitherT = {
+        val fet = fe.map { e =>
+          e match {
+            case Right(value) => Right(value)
+            case Left(err: CustomException) => Left(err)
+            case Left(_) => Left(InternalServverException)
+          }
+        }
+        EitherT(fet)
+      }
+    }
+
+    implicit class CatchDatabaseExpAPI[T](fe: Future[Either[CustomException, T]]) {
+      def expToEitherT = {
+        val fet = fe.map {
+          case Right(value) => Right(value)
+          case Left(err: CustomException) => Left(err)
+          case Left(_) => Left(InternalServverException)
         }
         EitherT(fet)
       }
@@ -114,5 +143,15 @@ object Helpers {
     }
 
     def authAsync(block: Request[AnyContent] => Future[Result]): Action[AnyContent] = Action.async(verifyJWT(block) _)
+  }
+
+  object Calculate {
+    def payment(day: Int) = {
+      val format = new SimpleDateFormat("HH:mm:ss")
+      val deathline = format.parse("21:00:00")
+      val now = format.parse(format.format(new Date))
+      if(deathline.getTime > now.getTime) day * 10
+      else (day * 10) + 10
+    }
   }
 }

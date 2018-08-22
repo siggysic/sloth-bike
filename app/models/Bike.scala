@@ -68,3 +68,5 @@ case class BikeRepairReturnReq(keyBarcode: String)
 
 case class BikeBorrowedReq(studentId: String, keyBarcode: String)
 case class BikeRepairReq(keyBarcode: String)
+
+case class BikeReturn(bike: Option[Bike], overtimeDate: String, overtimePayment: Long)
