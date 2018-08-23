@@ -70,4 +70,6 @@ GET     /api/histories              controllers.HistoryController.getHistories
 + nocsrf
 POST    /api/bikes/repair           controllers.api.BikeController.sendToRepair
 + nocsrf
-POST    /api/bikes/repair/result    controllers.api.BikeController.repairReturnBike
+POST    /api/bikes/repair/return    controllers.api.BikeController.repairReturnBike
+
+GET     /api/students/:id           controllers.api.StudentController.getStudentsByStudentId(id: String)

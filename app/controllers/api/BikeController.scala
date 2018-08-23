@@ -271,8 +271,6 @@ class BikeController @Inject()(cc: ControllerComponents, bikeRepository: BikeRep
           EitherT(result)
         }
 
-        _ = println(Console.GREEN + stationId + Console.RESET)
-
         status <- {
           val f: Future[Either[CustomException, BikeStatus]] = statusRepository.getStatusByText("Available") map {
             case Right(data) =>
