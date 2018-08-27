@@ -21,12 +21,12 @@ class HistoryController @Inject()(cc: ControllerComponents, historyRepository: H
         val historyId = result.map(_.id).getOrElse("")
         val borrowedDate = result.flatMap(_.borrowDate)
         val fine = borrowedDate.map(b => getDateDiff(b.getTime, System.currentTimeMillis(), TimeUnit.HOURS).toInt).getOrElse(0)
-        FineResult(historyId, fine)
-      case Left(_) =>
-        FineResult("", 0)
+        Right(FineResult(historyId, fine))
+      case Left(ex) =>
+        Left(ex)
     }
 
-    response(fine.map(Right.apply))
+    response(fine)
   }
 
   private def getDateDiff(diff: Long, base: Long, timeUnit: TimeUnit): Long = {
