@@ -9,7 +9,7 @@ import javax.inject.Inject
 import models._
 import net.liftweb.json.JsonAST.JObject
 import net.liftweb.json.JsonDSL._
-import play.api.mvc.{AbstractController, Action, ControllerComponents, Result}
+import play.api.mvc.{Action, ControllerComponents}
 import repositories.{BikeRepository, BikeStatusRepository, HistoryRepository, PaymentRepository}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -24,7 +24,6 @@ class BikeController @Inject()(cc: ControllerComponents, bikeRepository: BikeRep
     val body = Try(request.body.asJson.get.toJValue).getOrElse(JObject(Nil))
     val req = body.extract[BikeBorrowedReq]
 
-    println("Sad")
     val action: EitherT[Future, CustomException, JObject] =
       for {
         status <- {
@@ -38,7 +37,6 @@ class BikeController @Inject()(cc: ControllerComponents, bikeRepository: BikeRep
           }
           EitherT(f)
         }
-        _ =     println("Sad2")
 
         b <- {
           val f = bikeRepository.updateByKeyBarcode(req.keyBarcode, status.id) map {
@@ -47,7 +45,6 @@ class BikeController @Inject()(cc: ControllerComponents, bikeRepository: BikeRep
           }
           EitherT(f)
         }
-        _ =     println("Sad3")
 
         bike <- {
           val f: Future[Either[CustomException, Bike]] = bikeRepository.getBikeByKeyBarcode(req.keyBarcode) map {
@@ -61,7 +58,6 @@ class BikeController @Inject()(cc: ControllerComponents, bikeRepository: BikeRep
 
           EitherT(f)
         }
-        _ =     println("Sad4")
 
         history <- {
           val history = History(
@@ -70,7 +66,7 @@ class BikeController @Inject()(cc: ControllerComponents, bikeRepository: BikeRep
             remark = None,
             borrowDate = Some(new Timestamp(System.currentTimeMillis())),
             returnDate = None,
-            station = None,
+            station = Some(bike.stationId),
             bikeId = bike.id,
             paymentId = None,
             statusId = status.id
@@ -100,7 +96,7 @@ class BikeController @Inject()(cc: ControllerComponents, bikeRepository: BikeRep
           }
           EitherT(f)
         }
-        _ = println("S")
+
         b <- {
           val f = bikeRepository.updateByKeyBarcode(req.keyBarcode, status.id) map {
             case Right(i) => Right(i)
@@ -108,7 +104,6 @@ class BikeController @Inject()(cc: ControllerComponents, bikeRepository: BikeRep
           }
           EitherT(f)
         }
-        _ = println("S1")
 
         p <- {
           val payment = Payment(
@@ -123,7 +118,6 @@ class BikeController @Inject()(cc: ControllerComponents, bikeRepository: BikeRep
           }
           EitherT(f)
         }
-        _ = println("S2")
 
         h <- {
           val f: Future[Either[CustomException, Int]] = historyRepository.update(req.historyId, Some(p.id)) map {
@@ -141,7 +135,7 @@ class BikeController @Inject()(cc: ControllerComponents, bikeRepository: BikeRep
     val body = Try(request.body.asJson.get.toJValue).getOrElse(JObject(Nil))
     val req = body.extract[BikeRepairReq]
 
-    val a: EitherT[Future, CustomException, String] = for {
+    val action: EitherT[Future, CustomException, JObject] = for {
       status <- {
         val f: Future[Either[CustomException, BikeStatus]] = statusRepository.getStatusByText("OutOfOrder") map {
           case Right(data) =>
@@ -192,8 +186,9 @@ class BikeController @Inject()(cc: ControllerComponents, bikeRepository: BikeRep
         val f: Future[Either[CustomException, Int]] = historyRepository.create(history) map Right.apply
         EitherT(f)
       }
-    } yield ""
-    Future.successful(Ok(""))
+    } yield JObject(Nil) ~ ("finished" -> true)
+
+    response(action.value)
   }
 
   def repairReturnBike = Action.async { implicit request =>

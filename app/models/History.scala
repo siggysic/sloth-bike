@@ -17,3 +17,5 @@ case class HistoryWithPayment(history: History, payment: Payment, student: Stude
 case class HistoryWithStatus(id: String, studentId: Option[String], remark: Option[String],
                              borrowDate: Option[Timestamp], returnDate: Option[Timestamp],
                              status: BikeStatus)
+
+case class FineResult(historyId: String, fine: Int)
