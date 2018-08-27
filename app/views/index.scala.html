@@ -1,4 +1,4 @@
-@(message: String)(implicit assetsFinder: AssetsFinder)
+@(message: String)(implicit assetsFinder: AssetsFinder, request: Request[AnyContent])
 @main("Welcome to Play", assetsFinder) {
 
     @welcome(message, style = "scala")

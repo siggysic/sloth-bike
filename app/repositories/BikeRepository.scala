@@ -3,7 +3,6 @@ package repositories
 import java.sql.Timestamp
 import java.util.UUID
 
-import exceptions.DBException
 import javax.inject.{Inject, Singleton}
 import models._
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
@@ -41,12 +40,13 @@ trait BikeComponent extends BikeStatusComponent with StationComponent { self: Ha
 
 @Singleton()
 class BikeRepository @Inject() (protected val dbConfigProvider: DatabaseConfigProvider)(implicit ex: ExecutionContext)
-  extends BikeComponent with HasDatabaseConfigProvider[JdbcProfile] {
+  extends BikeComponent with HistoryComponent with HasDatabaseConfigProvider[JdbcProfile] {
 
   import profile.api._
   private val bike = TableQuery[Bikes]
   private val status = TableQuery[BikeStatusTable]
   private val station = TableQuery[Stations]
+  private val history = TableQuery[Histories]
 
   def create(newBike: Bike): Future[Int] = {
     val action = bike += newBike
@@ -75,15 +75,39 @@ class BikeRepository @Inject() (protected val dbConfigProvider: DatabaseConfigPr
     db.run(action)
   }
 
-  def getBike(id: String): Future[Option[(Bike, BikeStatus, Station)]] = {
+  def getBike(id: String): Future[Either[DBException.type, Option[(Bike, BikeStatus, Station)]]] = {
     val action = for {
       ((b, bs), s) <- bike.filter(_.id === id) join status on (_.statusId === _.id) join station on (_._1.stationId === _.id)
     } yield (b, bs, s)
 
-    db.run(action.result.headOption)
+    db.run(action.result.headOption).map(Right.apply).recover {
+      case _: Exception => Left(DBException)
+    }
   }
 
-  def getBikesRelational(query: BikeQuery): Future[Seq[(Int, Bike, BikeStatus, Station)]] =
+  def getBikesByStationId(sId: Int): Future[Either[DBException.type, Seq[Bike]]] = {
+    val action = bike.filter(_.stationId === sId)
+
+    db.run(action.result).map(Right.apply).recover {
+      case _: Exception => Left(DBException)
+    }
+  }
+
+  def countBikeByStatusId(id: Int): Future[Either[DBException.type, Int]] = {
+    val action = bike.filter(_.statusId === id)
+
+    db.run(action.length.result).map(Right.apply).recover {
+      case _: Exception => Left(DBException)
+    }
+  }
+
+  def getBikeTotal(): Future[Int] = {
+    val action = bike.length
+
+    db.run(action.result)
+  }
+
+  def getBikesRelational(query: BikeQuery): Future[Either[DBException.type, Seq[(Int, Bike, BikeStatus, Station)]]] =
     getBikePagination(bike, query)
 
   def searchBikes(bikeSearch: BikeSearch, bikeQuery: BikeQuery) = {
@@ -102,6 +126,19 @@ class BikeRepository @Inject() (protected val dbConfigProvider: DatabaseConfigPr
     getBikePagination(querySearchWithStatus, bikeQuery)
   }
 
+  def getTotalBikeBorrow(statusName: String, date: Timestamp, option: Boolean = true) = {
+    val action = for {
+      ((b, bs), h) <- {
+        if(option) bike join status on ((b, bs) => b.statusId === bs.id && bs.name === statusName) join history on ((b, h) => h.borrowDate <= date)
+        else bike join status on ((b, bs) => b.statusId === bs.id && bs.name === statusName) join history on ((b, h) => h.borrowDate > date)
+      }
+    } yield b
+
+    db.run(action.distinct.length.result).map(Right.apply).recover {
+      case _: Exception => Left(DBException)
+    }
+  }
+
   private def getBikePagination(query: Query[Bikes, Bikes#TableElementType, Seq], bikeQuery: BikeQuery) = {
 
     val total = query.length
@@ -113,7 +150,9 @@ class BikeRepository @Inject() (protected val dbConfigProvider: DatabaseConfigPr
       ((b, bs), s) <- bikePagination join status on (_.statusId === _.id) join station on (_._1.stationId === _.id)
     } yield (total, b, bs, s)
 
-    db.run(action.result)
+    db.run(action.result).map(Right.apply).recover {
+      case _: Exception => Left(DBException)
+    }
   }
 
   def updateByKeyBarcode(keyBarcode: String, statusId: Int) = {
@@ -123,9 +162,27 @@ class BikeRepository @Inject() (protected val dbConfigProvider: DatabaseConfigPr
     }
   }
 
+  def updateStatusStationByKeyBarcode(keyBarcode: String, statusId: Int, stationId: Int) = {
+    val action = bike.filter(_.keyBarcode === Option.apply(keyBarcode)).map(b => (b.statusId, b.stationId)).update((statusId, stationId))
+    db.run(action).map(Right.apply).recover {
+      case _: Exception => Left(DBException)
+    }
+  }
+
   def getBikeByKeyBarcode(keyBarcode: String) = {
     val action = bike.filter(_.keyBarcode === Option.apply(keyBarcode)).result.headOption
     db.run(action).map(Right.apply).recover {
+      case _: Exception => Left(DBException)
+    }
+  }
+
+  def getBikeByKeyBarcodeWithHistory(keyBarcode: String): Future[Either[DBException.type, Seq[(Bike, History)]]] = {
+    val bikeResult = bike.filter(_.keyBarcode === Option.apply(keyBarcode))
+    val action = for {
+      (b, h) <- bikeResult join history on ((b, h) => b.id === h.bikeId && h.paymentId.isEmpty)
+    }yield (b, h)
+
+    db.run(action.result).map(Right.apply).recover {
       case _: Exception => Left(DBException)
     }
   }

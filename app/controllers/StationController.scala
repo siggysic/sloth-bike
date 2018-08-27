@@ -31,7 +31,7 @@ class StationController @Inject()(stationRepository: StationRepository, cc: Cont
   )
 
   def viewStations
-  (name: Option[String] = None, available: Option[Int] = None, page: Int = 1) = Action.async {
+  (name: Option[String] = None, available: Option[Int] = None, page: Int = 1) = Action.async { implicit request: Request[AnyContent] =>
 
     val actualPage = page match {
       case p if p >= 1 => p
@@ -63,7 +63,7 @@ class StationController @Inject()(stationRepository: StationRepository, cc: Cont
 
   }
 
-  def viewAddStation = Action {
+  def viewAddStation = Action { implicit request: Request[AnyContent] =>
     Ok(views.html.addStation(insertForm))
   }
 

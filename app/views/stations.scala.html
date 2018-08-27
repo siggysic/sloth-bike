@@ -1,4 +1,4 @@
-@(stations: Seq[StationResult], total: Int, form: Form[StationQuery])(implicit assetsFinder: AssetsFinder)
+@(stations: Seq[StationResult], total: Int, form: Form[StationQuery])(implicit assetsFinder: AssetsFinder, request: Request[AnyContent])
 
 @currentPage(form: Form[StationQuery]) = @{
     val pageNo = form.data.get("page").map(_.toInt).getOrElse(1)

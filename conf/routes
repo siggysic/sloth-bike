@@ -10,6 +10,8 @@ GET     /count                      controllers.CountController.count
 GET     /message                    controllers.AsyncController.message
 
 # View
+GET     /login                      controllers.LoginController.viewLogin
+
 GET     /assets                     controllers.AssetsController.viewAssets(page: Int ?= 1)
 GET     /assets/insert              controllers.AssetsController.viewInsertAssets
 GET     /assets/import              controllers.AssetsController.viewImportAssets
@@ -23,6 +25,9 @@ POST    /asset/edit                 controllers.AssetsController.editAssets
 + nocsrf
 POST    /asset/upload               controllers.AssetsController.uploadAssets
 GET     /asset/search-barcode       controllers.AssetsController.searchOrPrintBarcode(search: models.BikeSearch, page: Int ?= 1)
+
++ nocsrf
+POST    /login                      controllers.LoginController.doLogin
 
 GET     /stations                   controllers.StationController.viewStations(name: Option[String] ?= None, available: Option[Int] ?= None, page: Int ?= 1)
 + nocsrf
@@ -39,6 +44,8 @@ POST    /api/bikes/borrow           controllers.api.BikeController.borrowBike
 + nocsrf
 POST    /api/bikes/return           controllers.api.BikeController.returnBike
 
+GET     /api/bikes/stations/:sId    controllers.api.BikeController.getBikesByStationId(sId: Int)
+
 GET     /api/fine/:studentId        controllers.api.HistoryController.getStudentFine(studentId: String)
 
 + nocsrf
@@ -49,7 +56,20 @@ GET     /assets/*file               controllers.Assets.versioned(file)
 
 # APIs for mobile
 GET     /api/stations               controllers.api.StationController.getStations
++ nocsrf
 POST    /api/stations               controllers.api.StationController.loginStations
+
+GET     /api/bikes/total            controllers.api.BikeController.getBikeTotal
+GET     /api/bikes/barcodes/:id     controllers.api.BikeController.getBikesByBarcodeId(id: String)
+GET     /api/bikes/barcodes/:id/borrow controllers.api.BikeController.getBikesByBarcodeId(id: String)
+GET     /api/bikes/barcodes/:id/return controllers.api.BikeController.getReturnBikeByBarcodeId(id: String)
 
 GET     /api/payments               controllers.PaymentController.getPayments
 GET     /api/histories              controllers.HistoryController.getHistories
+
++ nocsrf
+POST    /api/bikes/repair           controllers.api.BikeController.sendToRepair
++ nocsrf
+POST    /api/bikes/repair/return    controllers.api.BikeController.repairReturnBike
+
+GET     /api/students/:id           controllers.api.StudentController.getStudentsByStudentId(id: String)

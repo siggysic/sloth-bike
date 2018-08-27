@@ -1,4 +1,4 @@
-@(form: Form[Station])(implicit assetsFinder: AssetsFinder)
+@(form: Form[Station])(implicit assetsFinder: AssetsFinder, request: Request[AnyContent])
 
 @errorClass(form: Form[Station], fieldName: String) = @{
     if(form.error(fieldName).isDefined) {

@@ -13,6 +13,9 @@ import utils.ClaimSet
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import cats.implicits._
+import controllers.AssetsFinder
+import utils.Helpers.EitherHelper.{CatchDatabaseExpWithoutResult, ExtractEitherT}
 
 class StationController @Inject()(stationRepository: StationRepository) extends Response {
 
@@ -25,16 +28,18 @@ class StationController @Inject()(stationRepository: StationRepository) extends 
   )
 
   def getStations = Action.async {
-    val stations: Future[Either[CustomException, Seq[Station]]] = for {
-      st <- stationRepository.getStations
-    } yield Right(st)
+    val stations: Future[Either[CustomException, Stations]] = (
+      for {
+        st <- stationRepository.getStations.dbExpToEitherT
+      } yield Stations(st)
+    ).value
 
     response(stations)
   }
 
   def loginStations = Action.async { implicit request: Request[AnyContent] =>
     val errorFunction = { formWithErrors: Form[LoginStation] =>
-      response(Future.successful(Left(CustomException(formWithErrors.errors.map(_.message), 400))))
+      response(Future.successful(Left(GenericException(formWithErrors.errors.map(_.message), 400))))
     }
 
     val successFunction = { data: LoginStation =>
@@ -42,7 +47,7 @@ class StationController @Inject()(stationRepository: StationRepository) extends 
         st <- stationRepository.getStation(data.station_id)
       } yield st match {
         case Some(value) => Right(ClaimSet(value.id.get, value.name, value.location))
-        case None => Left(CustomException("Station not found" :: Nil, 404))
+        case None => Left(NotFoundException("Station"))
       }
       response(stations.map(_.right.map(s => ("token" -> Extraction.decompose(encode(s))) ~ JObject(Nil))))
     }

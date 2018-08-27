@@ -59,9 +59,14 @@ case class BikeSearch(
                        statusId: Option[Int] = None
                      )
 
+case class BikeTotal(
+                    total: Int
+                    )
 
 case class BikeReturnReq(keyBarcode: String, historyId: String, paymentReq: Option[PaymentReturn])
 case class BikeRepairReturnReq(keyBarcode: String)
 
 case class BikeBorrowedReq(studentId: String, keyBarcode: String)
 case class BikeRepairReq(keyBarcode: String)
+
+case class BikeReturn(bike: Option[Bike], overtimeDate: String, overtimePayment: Long)

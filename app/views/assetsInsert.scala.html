@@ -1,4 +1,5 @@
-@(form: Form[BikeRequest], fields: BikeFields, bikesStatus: Seq[BikeStatus], stations: Seq[Station])(implicit assetsFinder: AssetsFinder)
+@(form: Form[BikeRequest], fields: BikeFields, bikesStatus: Seq[BikeStatus], stations: Seq[Station]
+)(implicit assetsFinder: AssetsFinder, request: Request[AnyContent])
 
 @validateClass(field: String) = @{
   if(form.errors.find(_.key == field).nonEmpty){"is-invalid"}

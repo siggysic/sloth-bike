@@ -1,4 +1,8 @@
-@(title: String, assetsFinder: AssetsFinder, scripts: Html = Html(""))(content: Html)
+@(title: String, assetsFinder: AssetsFinder, scripts: Html = Html(""))(content: Html)(implicit request: Request[AnyContent])
+
+@if(request.session.get("username").isEmpty) {
+  <script src="@assetsFinder.path("javascripts/redirect.js")"></script>
+}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -48,7 +52,7 @@
               </li>
             </ul>
               <span class="navbar-text">
-                Welcome : Nattapol.s
+                Welcome : @{request.session.get("username").getOrElse("example@gmail.com")}
               </span>
           </div>
         </nav>
