@@ -20,7 +20,7 @@ class HistoryController @Inject()(cc: ControllerComponents, historyRepository: H
         val result = data.map(_.toQueryClass)
         val historyId = result.map(_.id).getOrElse("")
         val borrowedDate = result.flatMap(_.borrowDate)
-        val fine = borrowedDate.map(b => getDateDiff(b.getTime, System.currentTimeMillis(), TimeUnit.HOURS).toInt).getOrElse(0)
+        val fine = borrowedDate.map(b => getDateDiff(b.getTime, System.currentTimeMillis(), TimeUnit.HOURS).toInt * 20).getOrElse(0)
         Right(FineResult(historyId, fine))
       case Left(ex) =>
         Left(ex)

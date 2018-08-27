@@ -85,14 +85,6 @@ CREATE TABLE histories (
       ON UPDATE CASCADE
     );
 
-CREATE TABLE Authentications (
-    Id VARCHAR(255) NOT NULL PRIMARY KEY,
-    Username VARCHAR(255),
-    Password VARCHAR(255),
-    Status VARCHAR(255),
-    Role VARCHAR(255)
-);
-
 
 # --- !Downs
 
@@ -102,4 +94,3 @@ DROP TABLE students
 DROP TABLE bikes
 DROP TABLE bike_status
 DROP TABLE stations
-DROP TABLE Authentications
