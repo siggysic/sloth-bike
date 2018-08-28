@@ -1,78 +1,75 @@
 @(payments: Seq[FullPayment])(implicit assetsFinder: AssetsFinder, request: Request[AnyContent])
 
 @scripts = {
-    <script src="@assetsFinder.path("javascripts/hello.js")"></script>
+  <script src="@assetsFinder.path("javascripts/hello.js")"></script>
 }
 
 @main("MU Sloth Bike", assetsFinder, scripts) {
-    <div class="container">
-        <section>
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="form-group">
-                        <label for="studentId">รหัสนักศึกษา</label>
-                        <input type="text" id="studentId" name="studentId"  class="form-control" />
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section>
-            <div class="row">
-                <table id="paymentTable" class="table table-border">
-                    <thead>
-                        <tr>
-                            <th>รหัสนักศึกษา</th>
-                            <th>ชื่อ-นามสกุล</th>
-                            <th>คณะ</th>
-                            <th>ค่าปรับเกินเวลา(บาท)</th>
-                            <th>ค่าปรับชำรุด(บาท)</th>
-                            <th>รวมค่าปรับ(บาท)</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @for(payment <- payments) {
-                        <tr id="@payment.historyId">
-                            <td>@payment.studentId</td>
-                            <td>@{payment.firstName + " " + payment.lastName}</td>
-                            <td>@payment.major</td>
-                            <td>@payment.overtimeFine</td>
-                            <td>@payment.defectFine</td>
-                            <td>@{payment.overtimeFine.getOrElse(0) + payment.defectFine.getOrElse(0)}</td>
-                            <td>
-                                <button type="button"
-                                    data-target="#paymentModal"
-                                    data-toggle="modal"
-                                    id="@payment.historyId"
-                                    class="btn btn-primary">Pay</button>
-                            </td>
-                        </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </section>
-    </div>
-
-    <div class="modal fade" id="paymentModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <form>
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="modalLabel">รับชำระเงิน</h5>
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="button" id="submitUpdate" class="btn btn-primary">Save changes</button>
-                    </div>
-                </form>
-            </div>
+  <div class="card border-secondary mb-3">
+    <div class="card-header">Payment List</div>
+    <div class="card-body text-secondary">
+      <div class="form-row">
+        <div class="form-group col-md-4">
+          <label>รหัสนักศึกษา</label>
+          <input type="text" id="studentId" name="studentId"  class="form-control" />
         </div>
+      </div>
     </div>
+  </div>
+
+  <table id="paymentTable" class="table table-hover table-dark">
+    <thead>
+      <tr>
+        <th>รหัสนักศึกษา</th>
+        <th>ชื่อ-นามสกุล</th>
+        <th>คณะ</th>
+        <th>ค่าปรับเกินเวลา(บาท)</th>
+        <th>ค่าปรับชำรุด(บาท)</th>
+        <th>รวมค่าปรับ(บาท)</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+    @for(payment <- payments) {
+      <tr id="@payment.historyId">
+        <td>@payment.studentId</td>
+        <td>@{payment.firstName + " " + payment.lastName}</td>
+        <td>@payment.major</td>
+        <td>@payment.overtimeFine</td>
+        <td>@payment.defectFine</td>
+        <td>@{payment.overtimeFine.getOrElse(0) + payment.defectFine.getOrElse(0)}</td>
+        <td>
+          <button type="button"
+          data-target="#paymentModal"
+          data-toggle="modal"
+          id="@payment.historyId"
+          class="btn btn-primary">Pay</button>
+        </td>
+      </tr>
+    }
+    </tbody>
+  </table>
+
+  <div class="modal fade" id="paymentModal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <form>
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalLabel">รับชำระเงิน</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" id="submitUpdate" class="btn btn-primary">Save changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+
 }

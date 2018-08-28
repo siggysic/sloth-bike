@@ -258,6 +258,10 @@ class AssetsController @Inject()(cc: ControllerComponents, bikeRepo: BikeReposit
     }
   }
 
+  def viewTemplateAssetFile = Action.async{
+    Future.successful(Ok.sendFile(new java.io.File("public/template_asset_import.xlsx")))
+  }
+
   private def searchAssets(formSearch: Form[BikeSearch], bikeSearch: BikeSearch, page: Int = pageSize.page)(implicit request: Request[AnyContent]) = {
     val validateStatusId: BikeSearch = bikeSearch.statusId match {
       case Some(v) if v < 0 => bikeSearch.copy(statusId = None)

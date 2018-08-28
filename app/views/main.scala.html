@@ -31,29 +31,30 @@
           <div class="collapse navbar-collapse" id="navbarTogglerDemo01">
             <a class="navbar-brand" href="#">MU Sloth Bike</a>
             <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
-              <li class="nav-item active">
-                <a class="nav-link" href="#">Assets</a>
-              </li>
-              <li class="nav-item dropdown" >
-                <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="true" data-target="#paymentsDropdown">Payments</a>
-                <div class="dropdown-menu" id="paymentsDropdown">
-                  <a class="dropdown-item" href="#">1</a>
-                  <a class="dropdown-item" href="#">2</a>
-                  <a class="dropdown-item" href="#">3</a>
-                  <div class="dropdown-divider"></div>
-                  <a class="dropdown-item" href="#">4</a>
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="@routes.LoginController.viewLogin()" role="button" aria-haspopup="true" aria-expanded="true" data-target="#assetDropdown">Assets</a>
+                <div class="dropdown-menu" id="assetDropdown">
+                  <a class="dropdown-item" href="#">Insert</a>
+                  <a class="dropdown-item" href="#">Import</a>
                 </div>
               </li>
-              <li class="nav-item">
-                <a class="nav-link" href="#">Reports</a>
+              <li class="nav-item" >
+                <a class="nav-link" href="@routes.PaymentController.getPayments()">Payments</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="#">Stations</a>
+                <a class="nav-link" href="@routes.StationController.viewStations()">Stations</a>
               </li>
             </ul>
-              <span class="navbar-text">
-                Welcome : @{request.session.get("username").getOrElse("example@gmail.com")}
-              </span>
+            <ul>
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="true" data-target="#loginDropdown" style="color:white">
+                    Welcome : @{request.session.get("username").getOrElse("example@gmail.com")}
+                </a>
+                <div class="dropdown-menu" id="loginDropdown">
+                  <a class="dropdown-item" href="@routes.LoginController.doLogout()">Logout</a>
+                </div>
+              </li>
+            </ul>
           </div>
         </nav>
 

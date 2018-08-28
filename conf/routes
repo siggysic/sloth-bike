@@ -15,6 +15,7 @@ GET     /login                      controllers.LoginController.viewLogin
 GET     /assets                     controllers.AssetsController.viewAssets(page: Int ?= 1)
 GET     /assets/insert              controllers.AssetsController.viewInsertAssets
 GET     /assets/import              controllers.AssetsController.viewImportAssets
+GET     /assets/import/template     controllers.AssetsController.viewTemplateAssetFile
 GET     /assets/:id                 controllers.AssetsController.viewDetailAssets(id: String, page: Int ?= 1)
 GET     /assets/edit/:id            controllers.AssetsController.viewEditAssets(id: String, page: Int ?= 1)
 
@@ -28,6 +29,7 @@ GET     /asset/search-barcode       controllers.AssetsController.searchOrPrintBa
 
 + nocsrf
 POST    /login                      controllers.LoginController.doLogin
+GET    /logout                     controllers.LoginController.doLogout
 
 GET     /stations                   controllers.StationController.viewStations(name: Option[String] ?= None, available: Option[Int] ?= None, page: Int ?= 1)
 + nocsrf
@@ -59,7 +61,7 @@ GET     /api/stations               controllers.api.StationController.getStation
 + nocsrf
 POST    /api/stations               controllers.api.StationController.loginStations
 
-GET     /api/bikes/total            controllers.api.BikeController.getBikeTotal
+GET     /api/bikes/total            controllers.api.BikeController.getBikeTotal(status: Option[Int] ?= None)
 GET     /api/bikes/barcodes/:id     controllers.api.BikeController.getBikesByBarcodeId(id: String)
 GET     /api/bikes/barcodes/:id/borrow controllers.api.BikeController.getBikesByBarcodeId(id: String)
 GET     /api/bikes/barcodes/:id/return controllers.api.BikeController.getReturnBikeByBarcodeId(id: String)

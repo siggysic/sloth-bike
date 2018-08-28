@@ -4,9 +4,10 @@ import java.sql.Timestamp
 
 import exceptions.DBException
 import javax.inject.{Inject, Singleton}
-import models.{History, Payment}
+import models.{History, Payment, Student}
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.JdbcProfile
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -109,7 +110,7 @@ class PaymentRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
     db.run(action)
   }
 
-  def getLastStudentStatus(studentId: String) = {
+  def getLastStudentStatus(studentId: String): Future[Either[DBException.type, Option[((History, Option[(String, Option[Int], Option[Int])]), Student)]]] = {
     val action = history.joinLeft(
       payment.join(payment).on(_.id === _.parentId)
         .groupBy(_._1.id)
