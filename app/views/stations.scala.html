@@ -1,142 +1,134 @@
 @(stations: Seq[StationResult], total: Int, form: Form[StationQuery])(implicit assetsFinder: AssetsFinder, request: Request[AnyContent])
 
 @currentPage(form: Form[StationQuery]) = @{
-    val pageNo = form.data.get("page").map(_.toInt).getOrElse(1)
-    pageNo match {
-        case p if p >= 1 => p
-        case _ => 1
-    }
+  val pageNo = form.data.get("page").map(_.toInt).getOrElse(1)
+  pageNo match {
+    case p if p >= 1 => p
+    case _ => 1
+  }
 }
 
 @pageSize(form: Form[StationQuery]) = @{
-    form.data.get("pageSize").map(_.toInt).getOrElse(10) match {
-        case p if p >= 1 => p
-        case _ => 10
-    }
+  form.data.get("pageSize").map(_.toInt).getOrElse(10) match {
+    case p if p >= 1 => p
+    case _ => 10
+  }
 }
 
 @disabledPrev(form: Form[StationQuery]) = @{
-    if(currentPage(form) <= 1) {
-        "disabled"
-    } else {
-        ""
-    }
+  if(currentPage(form) <= 1) {
+    "disabled"
+  } else {
+    ""
+  }
 }
 
 @disabledNext(form: Form[StationQuery]) = @{
-    if(currentPage(form) >= Math.ceil(total / pageSize(form).toDouble).toInt) {
-        "disabled"
-    } else {
-        ""
-    }
+  if(currentPage(form) >= Math.ceil(total / pageSize(form).toDouble).toInt) {
+    "disabled"
+  } else {
+    ""
+  }
 }
 
 @activePage(page: Int) = @{
-    if(currentPage(form) == page) {
-        "active"
-    } else {
-        ""
-    }
+  if(currentPage(form) == page) {
+    "active"
+  } else {
+    ""
+  }
 }
 
 @pageList(total: Int, form: Form[StationQuery]) = @{
-    val page = currentPage(form)
-    val pageAmount =  Math.ceil(total / pageSize(form).toDouble).toInt
+  val page = currentPage(form)
+  val pageAmount =  Math.ceil(total / pageSize(form).toDouble).toInt
 
-    val list = 1 to pageAmount
-    list.filter(i => i >= page - 3 && i <= page + 3)
+  val list = 1 to pageAmount
+  list.filter(i => i >= page - 3 && i <= page + 3)
 }
 
 @queryParam(form: Form[StationQuery], page: Int) = @{
-    val nameQuery = form.data.get("name").map(str => s"name=$str")
-    val minAvailableQuery = form.data.get("minAvailable").map(str => s"minAvailable=$str")
-    val maxAvailableQuery = form.data.get("maxAvailable").map(str => s"maxAvailable=$str")
-    val queryString = Seq(nameQuery, minAvailableQuery, maxAvailableQuery).flatten.mkString("&") + "&page=" + page.toString
-    queryString
+  val nameQuery = form.data.get("name").map(str => s"name=$str")
+  val availableQuery = form.data.get("available").map(str => s"available=$str")
+  val queryString = Seq(nameQuery, availableQuery).flatten.mkString("&") + "&page=" + page.toString
+  queryString
 }
 
 @main("MU Sloth Bike", assetsFinder) {
-    <div>
-        <h2>Station List</h2>
-        <section class="border bg-light">
-            @helper.form(action = routes.StationController.filterStationAction(), 'class -> "col-md-12") {
-                <div class="row">
-                    <div class="form-group row col-md-6">
-                        <label for="name" class="col-md-3">Station: </label>
-                        <div class="col-md-8">
-                            <input type="text" id="name" name="name" class="form-control form-control-sm" value='@form.data.get("name")'/>
-                        </div>
-                    </div>
-                    <div class="form-group row col-md-6">
-                        <div class="col-md-12 row">
-                            <label class="col-md-5">Available Asset: </label>
-                            <div class="col-md-3">
-                                <input type="number" min="0" id="minAvailable" name="minAvailable" class="form-control form-control-sm" value='@form.data.get("minAvailable")'/>
-                            </div>
-                            -
-                            <div class="col-md-3">
-                                <input type="number" min="0" id="maxAvailable" name="maxAvailable" class="form-control form-control-sm" value='@form.data.get("maxAvailable")'/>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-11">
-                        <a href="/stations" class="btn btn-danger mx-1 float-right">Reset</a>
-                        <button type="submit" class="btn btn-success mx-1 float-right">Search</button>
-                    </div>
-                </div>
-            }
-        </section>
-        <section>
-            <div class="row">
-                <p class="col-md-12">
-                    <a href="/stations/add" class="btn btn-primary">Add New</a>
-                </p>
+  @helper.form(action = routes.StationController.filterStationAction(), 'class -> "col-md-12") {
+
+    <div class="card border-secondary mb-3">
+      <div class="card-header">Station List</div>
+      <div class="card-body text-secondary">
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label for="name" class="col-md-3">Station: </label>
+            <div class="col-md-8">
+              <input type="text" id="name" name="name" class="form-control form-control-sm" value='@form.data.get("name")'/>
             </div>
-            @if(stations.size != 0) {
-            <div class="row">
-                <div class="col-md-12 col-centered">
-                    <table class="table table-bordered">
-                        <thead>
-                        <tr>
-                            <th>Station Number</th>
-                            <th>Location</th>
-                            <th>Available Assets</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        @for(station <- stations) {
-                        <tr>
-                            <td>@station.name</td>
-                            <td>@station.location</td>
-                            <td>@station.available</td>
-                        </tr>
-                        }
-                        </tbody>
-                    </table>
-                    <nav aria-label="Page navigation example">
-                        <ul class="pagination justify-content-center">
-                            <li class="page-item @disabledPrev(form)">
-                                <a class="page-link" href="/stations?@queryParam(form, currentPage(form) - 1)" aria-label="Previous">
-                                    <span aria-hidden="true">&laquo;</span>
-                                    <span class="sr-only">Previous</span>
-                                </a>
-                            </li>
-                            @for(i <- pageList(total, form)) {
-                            <li class="page-item @activePage(i)"><a class="page-link" href="/stations?@queryParam(form, i)">@i</a></li>
-                            }
-                            <li class="page-item @disabledNext(form)">
-                                <a class="page-link" href="/stations?@queryParam(form, currentPage(form) + 1)" aria-label="Next">
-                                    <span aria-hidden="true">&raquo;</span>
-                                    <span class="sr-only">Next</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </nav>
-                </div>
+          </div>
+          <div class="form-group col-md-6">
+            <label for="available" class="col-md-6">Available Asset: </label>
+            <div class="col-md-6">
+              <input type="number" min="0" id="available" name="available" class="form-control form-control-sm" value='@form.data.get("available")'/>
             </div>
-            }
-        </section>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-md-11">
+            <button type="reset" class="btn btn-danger mx-1 float-right">Reset</button>
+            <button type="submit" class="btn btn-success mx-1 float-right">Search</button>
+          </div>
+        </div>
+      </div>
     </div>
+
+    <div class="form-row">
+      <div class="form-group col-md-2">
+        <a href="/stations/add" class="btn btn-primary">Add New</a>
+      </div>
+    </div>
+
+  }
+
+  @if(stations.size != 0) {
+    <table id="paymentTable" class="table table-hover table-dark">
+      <thead>
+        <tr>
+          <th>Station Number</th>
+          <th>Location</th>
+          <th>Available Assets</th>
+        </tr>
+      </thead>
+      <tbody>
+      @for(station <- stations) {
+        <tr>
+          <td>@station.name</td>
+          <td>@station.location</td>
+          <td>@station.available</td>
+        </tr>
+      }
+      </tbody>
+    </table>
+
+    <nav aria-label="Page navigation example">
+      <ul class="pagination justify-content-center">
+        <li class="page-item @disabledPrev(form)">
+          <a class="page-link" href="/stations?@queryParam(form, currentPage(form) - 1)" aria-label="Previous">
+            <span aria-hidden="true">&laquo;</span>
+            <span class="sr-only">Previous</span>
+          </a>
+        </li>
+        @for(i <- pageList(total, form)) {
+          <li class="page-item @activePage(i)"><a class="page-link" href="/stations?@queryParam(form, i)">@i</a></li>
+        }
+        <li class="page-item @disabledNext(form)">
+          <a class="page-link" href="/stations?@queryParam(form, currentPage(form) + 1)" aria-label="Next">
+            <span aria-hidden="true">&raquo;</span>
+            <span class="sr-only">Next</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+  }
 }

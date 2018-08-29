@@ -9,19 +9,20 @@
 }
 
 @main("MU Sloth Bike", assetsFinder) {
-    <div>
-        <h2>New Station</h2>
+    <div class="card border-dark mb-3">
+        <h5 class="card-header">New Station</h5>
+        <div class="card-body">
         @helper.form(action = routes.StationController.addStation()) {
             <div class="input-group row col-md-12">
                 <label for="stationName" class="col-md-2 col-form-label">Station Number</label>
                 <div class="col-md-6">
                     <input type="text" id="stationName" name="stationName"
-                           class='form-control form-control-sm col-md-5 @errorClass(form, "stationName")'
-                           value='@form.data.getOrElse("stationName", "")' />
+                    class='form-control form-control-sm col-md-5 @errorClass(form, "stationName")'
+                    value='@form.data.getOrElse("stationName", "")' />
                     @if(form.error("stationName").isDefined) {
-                    <div class="invalid-feedback mb-1">
+                        <div class="invalid-feedback mb-1">
                         @form.error("stationName").map(_.message)
-                    </div>
+                        </div>
                     }
                 </div>
             </div>
@@ -29,12 +30,12 @@
                 <label for="location" class="col-md-2 col-form-label">Location</label>
                 <div class="col-md-6">
                     <input type="text" id="location" name="location"
-                           class='form-control form-control-sm col-md-5 @errorClass(form, "location")'
-                           value='@form.data.getOrElse("location", "")' />
+                    class='form-control form-control-sm col-md-5 @errorClass(form, "location")'
+                    value='@form.data.getOrElse("location", "")' />
                     @if(form.error("location").isDefined) {
-                    <div class="invalid-feedback">
+                        <div class="invalid-feedback">
                         @form.error("location").map(_.message)
-                    </div>
+                        </div>
                     }
                 </div>
             </div>
@@ -45,6 +46,6 @@
                 </div>
             </div>
         }
+        </div>
     </div>
-  </div>
 }
