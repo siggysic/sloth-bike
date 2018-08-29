@@ -16,7 +16,8 @@ class StationController @Inject()(stationRepository: StationRepository, cc: Cont
   val queryForm: Form[StationQuery] = Form(
     mapping(
       "name" -> optional(text),
-      "available" -> optional(number),
+      "minAvailable" -> optional(number),
+      "maxAvailable" -> optional(number),
       "page" -> default(number(min = 1), 1),
       "pageSize" -> default(number, 10)
     )(StationQuery.apply)(StationQuery.unapply)
@@ -31,16 +32,16 @@ class StationController @Inject()(stationRepository: StationRepository, cc: Cont
   )
 
   def viewStations
-  (name: Option[String] = None, available: Option[Int] = None, page: Int = 1) = Action.async { implicit request: Request[AnyContent] =>
+  (name: Option[String] = None, minAvailable: Option[Int] = None, maxAvailable: Option[Int] = None, page: Int = 1) = Action.async { implicit request: Request[AnyContent] =>
 
     val actualPage = page match {
       case p if p >= 1 => p
       case _ => 1
     }
 
-    val currentForm = queryForm.fill(StationQuery(name, available, actualPage))
+    val currentForm = queryForm.fill(StationQuery(name, minAvailable, maxAvailable, actualPage))
 
-    stationRepository.getStations(StationQuery(name, available, actualPage)).map { r =>
+    stationRepository.getStations(StationQuery(name, minAvailable, maxAvailable, actualPage)).map { r =>
       val (stations, totalStation) = r
       Ok(views.html.stations(stations.map(s => StationResult(s._1, s._2, s._3, s._4)), totalStation, currentForm))
     }
@@ -50,13 +51,14 @@ class StationController @Inject()(stationRepository: StationRepository, cc: Cont
 
     val failureFn = { formWithError: Form[StationQuery] =>
       val name = formWithError.data.get("name")
-      val available = formWithError.data.get("available").map(_.toInt)
+      val minAvailable = formWithError.data.get("minAvailable").map(_.toInt)
+      val maxAvailable = formWithError.data.get("maxAvailable").map(_.toInt)
       val page = formWithError.data.get("page").map(_.toInt).getOrElse(1)
-      Redirect(routes.StationController.viewStations(name, available, page))
+      Redirect(routes.StationController.viewStations(name, minAvailable, maxAvailable, page))
     }
 
     val successFn = { query: StationQuery =>
-      Redirect(routes.StationController.viewStations(query.name, query.available))
+      Redirect(routes.StationController.viewStations(query.name, query.minAvailable, query.maxAvailable))
     }
 
     queryForm.bindFromRequest().fold(failureFn, successFn)
@@ -75,7 +77,7 @@ class StationController @Inject()(stationRepository: StationRepository, cc: Cont
 
     val success = { station: Station =>
       stationRepository.create(station).flatMap { _ =>
-        stationRepository.getStations(StationQuery(None, None, 1)).map( s =>
+        stationRepository.getStations(StationQuery(None, None, None, 1)).map( s =>
           Redirect(routes.StationController.viewStations())
         )
       }

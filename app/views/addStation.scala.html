@@ -13,7 +13,7 @@
         <h2>New Station</h2>
         @helper.form(action = routes.StationController.addStation()) {
             <div class="input-group row col-md-12">
-                <label for="stationName" class="col-md-2 col-form-label">Station Name</label>
+                <label for="stationName" class="col-md-2 col-form-label">Station Number</label>
                 <div class="col-md-6">
                     <input type="text" id="stationName" name="stationName"
                            class='form-control form-control-sm col-md-5 @errorClass(form, "stationName")'

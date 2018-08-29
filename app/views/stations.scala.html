@@ -49,8 +49,9 @@
 
 @queryParam(form: Form[StationQuery], page: Int) = @{
     val nameQuery = form.data.get("name").map(str => s"name=$str")
-    val availableQuery = form.data.get("available").map(str => s"available=$str")
-    val queryString = Seq(nameQuery, availableQuery).flatten.mkString("&") + "&page=" + page.toString
+    val minAvailableQuery = form.data.get("minAvailable").map(str => s"minAvailable=$str")
+    val maxAvailableQuery = form.data.get("maxAvailable").map(str => s"maxAvailable=$str")
+    val queryString = Seq(nameQuery, minAvailableQuery, maxAvailableQuery).flatten.mkString("&") + "&page=" + page.toString
     queryString
 }
 
@@ -67,9 +68,15 @@
                         </div>
                     </div>
                     <div class="form-group row col-md-6">
-                        <label for="available" class="col-md-6">Available Asset: </label>
-                        <div class="col-md-6">
-                            <input type="number" min="0" id="available" name="available" class="form-control form-control-sm" value='@form.data.get("available")'/>
+                        <div class="col-md-12 row">
+                            <label class="col-md-5">Available Asset: </label>
+                            <div class="col-md-3">
+                                <input type="number" min="0" id="minAvailable" name="minAvailable" class="form-control form-control-sm" value='@form.data.get("minAvailable")'/>
+                            </div>
+                            -
+                            <div class="col-md-3">
+                                <input type="number" min="0" id="maxAvailable" name="maxAvailable" class="form-control form-control-sm" value='@form.data.get("maxAvailable")'/>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -93,7 +100,7 @@
                     <table class="table table-bordered">
                         <thead>
                         <tr>
-                            <th>Station Name</th>
+                            <th>Station Number</th>
                             <th>Location</th>
                             <th>Available Assets</th>
                         </tr>

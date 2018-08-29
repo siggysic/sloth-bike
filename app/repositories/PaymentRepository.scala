@@ -2,7 +2,7 @@ package repositories
 
 import java.sql.Timestamp
 
-import exceptions.DBException
+import exceptions.{DBException, CustomException}
 import javax.inject.{Inject, Singleton}
 import models.{History, Payment}
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
@@ -43,9 +43,10 @@ class PaymentRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
   private val history = TableQuery[Histories]
   private val student = TableQuery[Students]
 
-  def getPayments(studentId: String): Future[Seq[(String, Option[Int], Option[Int])]] = {
+  def getPayments(paymentId: String): Future[Option[(String, Option[Int], Option[Int])]] = {
     val action =
       payment.join(payment).on(_.id === _.parentId)
+      .filter(_._1.id === paymentId)
       .groupBy(_._1.id)
       .map {
         case (id, group) =>
@@ -57,13 +58,20 @@ class PaymentRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
             group.map(p => p._2.defectFine).sum.getOrElse(0)
 
           (id, baseOvertimeFine + subOvertimeFine, baseDefectFine + subDefectFine)
-      }.result
+      }.result.headOption
 
     db.run(action)
   }
 
+  def getPaymentById(id: String): Future[Either[CustomException, Seq[Payment]]] = {
+    val action = payment.filter(p => p.id === id || p.parentId === id).result
+    db.run(action).map(Right.apply).recover {
+      case _: Exception => Left(DBException)
+    }
+  }
+
   def create(payment: Payment) = {
-    val action = this.payment.returning(this.payment.map(_.id)) += payment
+    val action = this.payment += payment
     db.run(action)
   }
 

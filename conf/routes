@@ -29,14 +29,15 @@ GET     /asset/search-barcode       controllers.AssetsController.searchOrPrintBa
 + nocsrf
 POST    /login                      controllers.LoginController.doLogin
 
-GET     /stations                   controllers.StationController.viewStations(name: Option[String] ?= None, available: Option[Int] ?= None, page: Int ?= 1)
+GET     /stations                   controllers.StationController.viewStations(name: Option[String] ?= None, minAvailable: Option[Int] ?= None, maxAvailable: Option[Int] ?= None, page: Int ?= 1)
 + nocsrf
 POST    /stations                   controllers.StationController.filterStationAction
 GET     /stations/add               controllers.StationController.viewAddStation
 GET     /payments                   controllers.PaymentController.getPayments
 
 # API
-GET     /api/payments/:id           controllers.api.PaymentController.getPayment(id: String)
+GET     /api/history/:id           controllers.api.PaymentController.getPayment(id: String)
++ nocsrf
 POST    /api/payments               controllers.api.PaymentController.createTransaction
 
 + nocsrf
