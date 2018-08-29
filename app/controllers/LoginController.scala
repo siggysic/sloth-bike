@@ -57,6 +57,9 @@ class LoginController @Inject()(cc: ControllerComponents, bikeRepo: BikeReposito
 
   def doLogin() = Action.async { implicit request: Request[AnyContent] =>
     val errorFunction = { formWithErrors: Form[Login] =>
+      val c = Calendar.getInstance
+      c.setTime(new Date())
+      c.add(Calendar.DATE, 1)
       (
         for {
           status <- bikeStatusRepository.getStatus.map { es =>
@@ -70,7 +73,9 @@ class LoginController @Inject()(cc: ControllerComponents, bikeRepo: BikeReposito
 
           bikeAvail <- bikeRepo.countBikeByStatusId(status._1.map(_.id).getOrElse(0)).dbExpToEitherT
           bikeOut <- bikeRepo.countBikeByStatusId(status._2.map(_.id).getOrElse(0)).dbExpToEitherT
-        } yield BadRequest(views.html.login(formWithErrors, fields, GraphLogin(bikeAvail, bikeOut, 1, 1))).withNewSession
+          borrowOneDay <- bikeRepo.getTotalBikeBorrow("Borrowed", new Timestamp(c.getTime.getTime)).dbExpToEitherT
+          borrowMoreThanOne <- bikeRepo.getTotalBikeBorrow("Borrowed", new Timestamp(c.getTime.getTime), false).dbExpToEitherT
+        } yield BadRequest(views.html.login(formWithErrors, fields, GraphLogin(bikeAvail, bikeOut, borrowOneDay, borrowMoreThanOne))).withNewSession
       ).extract
     }
 
@@ -92,4 +97,9 @@ class LoginController @Inject()(cc: ControllerComponents, bikeRepo: BikeReposito
       successFunction
     )
   }
+
+  def doLogout() = Action { implicit request: Request[AnyContent] =>
+    Redirect("/login").withNewSession
+  }
+
 }

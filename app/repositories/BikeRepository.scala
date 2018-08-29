@@ -93,6 +93,14 @@ class BikeRepository @Inject() (protected val dbConfigProvider: DatabaseConfigPr
     }
   }
 
+  def getBikesByStationIdAndKeyBarcode(bId: String, sId: Int): Future[Either[DBException.type, Option[Bike]]] = {
+    val action = bike.filter(b => b.stationId === sId && b.keyBarcode === bId && b.statusId === 1)
+
+    db.run(action.result.headOption).map(Right.apply).recover {
+      case _: Exception => Left(DBException)
+    }
+  }
+
   def countBikeByStatusId(id: Int): Future[Either[DBException.type, Int]] = {
     val action = bike.filter(_.statusId === id)
 
@@ -101,10 +109,15 @@ class BikeRepository @Inject() (protected val dbConfigProvider: DatabaseConfigPr
     }
   }
 
-  def getBikeTotal(): Future[Int] = {
-    val action = bike.length
+  def getBikeTotal(status: Option[Int]): Future[Either[DBException.type, Int]] = {
+    val action = status match {
+      case Some(s) => bike.filter(_.statusId === s).length
+      case None => bike.length
+    }
 
-    db.run(action.result)
+    db.run(action.result).map(Right.apply).recover {
+      case _: Exception => Left(DBException)
+    }
   }
 
   def getBikesRelational(query: BikeQuery): Future[Either[DBException.type, Seq[(Int, Bike, BikeStatus, Station)]]] =
@@ -172,17 +185,6 @@ class BikeRepository @Inject() (protected val dbConfigProvider: DatabaseConfigPr
   def getBikeByKeyBarcode(keyBarcode: String) = {
     val action = bike.filter(_.keyBarcode === Option.apply(keyBarcode)).result.headOption
     db.run(action).map(Right.apply).recover {
-      case _: Exception => Left(DBException)
-    }
-  }
-
-  def getBikeByKeyBarcodeWithHistory(keyBarcode: String): Future[Either[DBException.type, Seq[(Bike, History)]]] = {
-    val bikeResult = bike.filter(_.keyBarcode === Option.apply(keyBarcode))
-    val action = for {
-      (b, h) <- bikeResult join history on ((b, h) => b.id === h.bikeId && h.paymentId.isEmpty)
-    }yield (b, h)
-
-    db.run(action.result).map(Right.apply).recover {
       case _: Exception => Left(DBException)
     }
   }

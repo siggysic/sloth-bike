@@ -20,7 +20,10 @@ abstract class CustomException(msg: Seq[String], status: Int) {
 
 case class GenericException(msg: Seq[String], status: Int) extends CustomException(msg, status)
 
-case class NotFoundException(topic: String) extends CustomException(s"$topic not found".trim :: Nil, 400)
+case class NotFoundException(topic: String) extends CustomException(s"$topic not found".trim :: Nil, 404)
+case class NotFoundThaiLangException(topic: String) extends CustomException(s"ไม่พบ${topic}ในระบบ".trim :: Nil, 404)
+
+case class BadRequestException(msg: String) extends CustomException(msg :: Nil, 400)
 
 case object UnauthorizedException extends CustomException("Token is invalid" :: Nil, 401)
 
