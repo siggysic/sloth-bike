@@ -85,12 +85,17 @@
                   </div>
                 </div>
             </div>
-            <div class="col-md-12 row">
+            <div class="row">
               <div class="form-group col-md-5">
                 <label>คณะ</label>
                 <select id="major" name="major" class="form-control" value='@form.data.get("major")' >
+                    <option value="" selected="selected"></option>
                     @for(m <- majors) {
-                      <option value="@m">@m</option>
+                      @if(m == form.data.get("major").getOrElse("")) {
+                        <option value="@m" selected="selected">@m</option>
+                      } else {
+                        <option value="@m">@m</option>
+                      }
                     }
                 </select>
               </div>
