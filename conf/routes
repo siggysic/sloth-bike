@@ -35,7 +35,9 @@ GET     /stations                   controllers.StationController.viewStations(n
 + nocsrf
 POST    /stations                   controllers.StationController.filterStationAction
 GET     /stations/add               controllers.StationController.viewAddStation
-GET     /payments                   controllers.PaymentController.getPayments
+GET     /payments                   controllers.PaymentController.getPayments(studentId: Option[String] ?= None, firstName: Option[String] ?= None, lastName: Option[String] ?= None, major: Option[String] ?= None, page: Int ?= 1, pageSize: Int ?= 10)
++ nocsrf
+POST    /payments                   controllers.PaymentController.filterPaymentAction
 
 # API
 GET     /api/history/:id           controllers.api.PaymentController.getPayment(id: String)
@@ -67,7 +69,6 @@ GET     /api/bikes/barcodes/:id     controllers.api.BikeController.getBikesByBar
 GET     /api/bikes/barcodes/:id/borrow controllers.api.BikeController.getBikesByBarcodeId(id: String)
 GET     /api/bikes/barcodes/:id/return controllers.api.BikeController.getReturnBikeByBarcodeId(id: String)
 
-GET     /api/payments               controllers.PaymentController.getPayments
 GET     /api/histories              controllers.HistoryController.getHistories
 
 + nocsrf

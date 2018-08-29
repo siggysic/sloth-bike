@@ -37,4 +37,11 @@ class StudentRepository @Inject()(protected val dbConfigProvider: DatabaseConfig
     }
   }
 
+  def getMajors = {
+    val action = students.groupBy(_.major).map(_._1).result
+    db.run(action).map(Right.apply).recover {
+      case _: Exception => Left(exceptions.DBException)
+    }
+  }
+
 }

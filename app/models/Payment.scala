@@ -22,3 +22,6 @@ case class ModalResponse(student: Student, payment: PaymentResp, history: Histor
 case class PaymentReq(fine: Option[Int],
                        note: Option[String] = None,
                        parentId: Option[String] = None)
+
+
+case class PaymentQuery(studentId: Option[String], firstName: Option[String], lastName: Option[String], major: Option[String], page: Int, pageSize: Int = 10)
