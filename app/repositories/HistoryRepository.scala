@@ -137,7 +137,7 @@ class HistoryRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
     val total = fullQuery.length
 
     val action = for {
-      query <- fullQuery.drop((query.page - 1) * query.pageSize).take(query.pageSize)
+      query <- fullQuery.sortBy(_._1._1._1._1.updatedAt).drop((query.page - 1) * query.pageSize).take(query.pageSize)
     } yield (total, query)
 
     db.run(action.result).map(Right.apply).recover {

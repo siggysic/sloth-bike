@@ -70,13 +70,29 @@
     </div>
   }
 
-  @table(List("เลขครุภัณฑ์", "Key Barcode", "ป้ายทะเบียน", "RFID", "Status", "Remark"),
-    assets.map(asset => (
-        routes.AssetsController.viewEditAssets(asset._2.id.toString),
-        asset._2.pieceNo :: asset._2.keyBarcode :: asset._2.licensePlate :: asset._2.referenceId ::
-                asset._3.status :: asset._2.remark :: Nil
-      )
-    ))
+  <table id="table-clickable" class="table table-hover table-dark">
+    <thead>
+      <tr>
+      @List("เลขครุภัณฑ์", "Key Barcode", "ป้ายทะเบียน", "RFID", "Status", "Remark", "Go to detail").map{ h =>
+        <th scope="col">@h</th>
+      }
+      </tr>
+    </thead>
+    <tbody>
+      @assets.map { row =>
+        <tr>
+          <td><a href="@routes.AssetsController.viewEditAssets(row._2.id.toString)">&nbsp;</a>@row._2.pieceNo</td>
+          <td><a href="@routes.AssetsController.viewEditAssets(row._2.id.toString)">&nbsp;</a>@row._2.keyBarcode</td>
+          <td><a href="@routes.AssetsController.viewEditAssets(row._2.id.toString)">&nbsp;</a>@row._2.licensePlate</td>
+          <td><a href="@routes.AssetsController.viewEditAssets(row._2.id.toString)">&nbsp;</a>@row._2.referenceId</td>
+          <td><a href="@routes.AssetsController.viewEditAssets(row._2.id.toString)">&nbsp;</a>@row._3.status</td>
+          <td><a href="@routes.AssetsController.viewEditAssets(row._2.id.toString)">&nbsp;</a>@row._2.remark</td>
+          <td><a href="@routes.AssetsController.viewDetailAssets(row._2.id.toString)">Detail</a></td>
+        </tr>
+      }
+    </tbody>
+  </table>
+
 
   @assets.headOption.map { asset =>
     @defining((asset._1 / pageSize.size.toDouble).ceil) { page =>

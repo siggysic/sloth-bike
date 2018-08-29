@@ -119,11 +119,11 @@
 
   <h3>History</h3>
 
-  @table("From Date" :: "To Date" :: "Status" :: "ค่าปรับ (บาท)" :: "Remark" :: Nil,
+  @table("From Date" :: "To Date" :: "Status" :: "ค่าปรับ (บาท)" :: "Student ID" :: "Remark" :: Nil,
     history.map(h => (
             routes.AssetsController.viewAssets(),
             h._2.borrowDate :: h._2.returnDate :: h._3.map(s => s.status).getOrElse("") :: h._4.map(p => p._2.getOrElse(0)).getOrElse(0) ::
-            h._2.remark.getOrElse("") :: Nil
+            h._2.studentId.getOrElse("") :: h._2.remark.getOrElse("") :: Nil
     ))
   )
 
