@@ -11,29 +11,37 @@ $(document).ready(function() {
 
 $(document).ready(function() {
     var currentId;
+    var paymentId;
     $("#paymentTable td button").click(function() {
         currentId = $(this).attr('id');
         $.ajax({
             type: 'GET',
-            url: '/api/payments/' + currentId,
-            success: function(data) {
-                console.log(data);
+            url: '/api/history/' + currentId,
+            success: function(json) {
+                var data = json.data;
+                paymentId = data.payment.id
                 $("#paymentModal .modal-body").html(`
-                    <div class="col-md-12">
-                        <p>${data.id}</p>
-                        <p>{studentName}</p>
-                        <p>{major}</p>
-                        <p>Start: {from}</p>
-                        <p>To: {to}</p>
-                        <p>ค่าปรับเกินเวลา: ${data.overtimeFine}</p>
-                        <p>ค่าปรับชำรุด: ${data.defectFine}</p>
-                        <div class="form-group">
-                            <label for="fine" class="col-form-label">ค่าอื่นๆ(บาท): </label>
-                            <input type="number" id="fine" name="fine" class="form-control form-control-sm" />
+                    <div class="col-md-12 row">
+                        <div class="col-md-3">
+                            <img src="${data.student.profilePicture}" class="img-thumbnail" alt="Cinque Terre">
                         </div>
-                        <div class="form-group">
-                            <label for="note" class="col-form-label">Note</label>
-                            <input type="text" id="note" name="note" class="form-control form-control-sm" />
+                        <div class="col-md-9">
+                            <p>${data.student.id}</p>
+                            <p>${data.student.firstName} ${data.student.lastName}</p>
+                            <p>${data.student.major}</p>
+                            <p>Start: ${data.history.borrowDate}</p>
+                            <p>To: ${data.history.returnDate}</p>
+                            <p>ค่าปรับเกินเวลา: ${data.payment.overtimeFine}</p>
+                            <p>ค่าปรับชำรุด: ${data.payment.defectFine}</p>
+                            <p>สาเหตุ: ${data.payment.note}</p>
+                            <div class="form-group">
+                                <label for="fine" class="col-form-label">ค่าอื่นๆ(ถ้ามี): </label>
+                                <input type="number" id="fine" name="fine" class="form-control form-control-sm" />
+                            </div>
+                            <div class="form-group">
+                                <label for="note" class="col-form-label">Note</label>
+                                <input type="text" id="note" name="note" class="form-control form-control-sm" />
+                            </div>
                         </div>
                     </div>
                 `);
@@ -48,16 +56,24 @@ $(document).ready(function() {
        $.map(data, function(n, i) {
             json[n['name']] = n['value']
        });
-
-       json.parentId = currentId
+       json.fine = Number(json.fine)
+       json.parentId = paymentId
+       console.log(json)
 
        $.ajax({
             type: 'POST',
             url: '/api/payments',
+            data: JSON.stringify(json),
+            contentType: "application/json",
+            async: false,
             success: function(data) {
                 document.location.href = "/payments"
+            },
+            error: function(XMLHttpRequest, textStatus, errorThrown) {
+                alert("Error: Can't update");
             }
        })
+       WriteCookie();
     });
 
 })

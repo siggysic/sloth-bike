@@ -13,6 +13,8 @@ import scala.concurrent.duration.TimeUnit
 class HistoryController @Inject()(cc: ControllerComponents, historyRepository: HistoryRepository)
                                  (implicit ec: ExecutionContext) extends Response {
 
+  import utils.Helpers._
+
   def getStudentFine(studentId: String) = Action.async {
     import models.mappers.HistoryMapper._
     val fine = historyRepository.getLastActionOfStudent(studentId).map {
@@ -20,7 +22,10 @@ class HistoryController @Inject()(cc: ControllerComponents, historyRepository: H
         val result = data.map(_.toQueryClass)
         val historyId = result.map(_.id).getOrElse("")
         val borrowedDate = result.flatMap(_.borrowDate)
-        val fine = borrowedDate.map(b => getDateDiff(b.getTime, System.currentTimeMillis(), TimeUnit.HOURS).toInt * 20).getOrElse(0)
+        val arrivalDate = borrowedDate.map(_.toLocalDateTime.toLocalDate)
+        val now = java.time.LocalDate.now
+        val diff = java.time.Period.between(arrivalDate.getOrElse(now), now)
+        val fine = Calculate.payment(diff.getDays)
         Right(FineResult(historyId, fine))
       case Left(ex) =>
         Left(ex)

@@ -48,14 +48,19 @@ class StationRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
           (base._1, base._2, base._3, group.map(_._2.map(_.id)).countDistinct)
       })
 
-    val filterByAvailable = query.available match {
-      case Some(available) => joinBikes.filter(_._4 === available)
+    val filterByMinAvailable = query.minAvailable match {
+      case Some(minAvailable) => joinBikes.filter(_._4 >= minAvailable)
       case None => joinBikes
     }
 
-    val summary = filterByAvailable.drop((query.page - 1) * query.pageSize).take(query.pageSize)
+    val filterByMaxAvailable = query.maxAvailable match {
+      case Some(maxAvailable) => filterByMinAvailable.filter(_._4 <= maxAvailable)
+      case None => filterByMinAvailable
+    }
 
-    val totalAction = filterByAvailable.sortBy(_._1).length.result
+    val summary = filterByMaxAvailable.drop((query.page - 1) * query.pageSize).take(query.pageSize)
+
+    val totalAction = filterByMaxAvailable.sortBy(_._1).length.result
     val action = summary.result
     db.run(action).flatMap(s => db.run(totalAction).map(total => (s, total)))
   }

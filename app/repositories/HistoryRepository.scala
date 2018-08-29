@@ -82,6 +82,13 @@ class HistoryRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
     db.run(action)
   }
 
+  def getHistoryById(id: String) = {
+    val action = history.filter(_.id === id).result.headOption
+    db.run(action).map(Right.apply).recover {
+      case _: Exception => Left(models.DBException)
+    }
+  }
+
   def getHistories(query: HistoryQuery): Future[Either[DBException.type, Seq[(Int, ((((History, Option[Bike]), Option[BikeStatus]), Option[(String, Option[Int])]), Option[Station]))]]] = {
     val queryBase = history.joinLeft(bike).on(_.bikeId === _.id)
       .joinLeft(status).on(_._1.statusId === _.id)

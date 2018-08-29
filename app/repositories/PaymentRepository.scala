@@ -2,7 +2,7 @@ package repositories
 
 import java.sql.Timestamp
 
-import exceptions.DBException
+import exceptions.{DBException, CustomException}
 import javax.inject.{Inject, Singleton}
 import models.{History, Payment, Student}
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
@@ -44,9 +44,10 @@ class PaymentRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
   private val history = TableQuery[Histories]
   private val student = TableQuery[Students]
 
-  def getPayments(studentId: String): Future[Seq[(String, Option[Int], Option[Int])]] = {
+  def getPayments(paymentId: String): Future[Option[(String, Option[Int], Option[Int])]] = {
     val action =
       payment.join(payment).on(_.id === _.parentId)
+      .filter(_._1.id === paymentId)
       .groupBy(_._1.id)
       .map {
         case (id, group) =>
@@ -58,13 +59,20 @@ class PaymentRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
             group.map(p => p._2.defectFine).sum.getOrElse(0)
 
           (id, baseOvertimeFine + subOvertimeFine, baseDefectFine + subDefectFine)
-      }.result
+      }.result.headOption
 
     db.run(action)
   }
 
+  def getPaymentById(id: String): Future[Either[CustomException, Seq[Payment]]] = {
+    val action = payment.filter(p => p.id === id || p.parentId === id).result
+    db.run(action).map(Right.apply).recover {
+      case _: Exception => Left(DBException)
+    }
+  }
+
   def create(payment: Payment) = {
-    val action = this.payment.returning(this.payment.map(_.id)) += payment
+    val action = this.payment += payment
     db.run(action)
   }
 
@@ -75,14 +83,14 @@ class PaymentRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
     }
   }
 
-  def getFullPayment(studentId: String, studentName: String, major: String) = {
+  def getFullPayment(studentId: String, studentFirstName: String, studentLastName: String, major: String, page: Int = 1, pageSize: Int = 10) = {
     val action = payment
       .join(payment).on(_.id === _.parentId)
       .joinRight(history).on(_._1.id === _.paymentId)
       .join(student).on(_._2.studentId === _.id)
       .filter(_._2.id like s"%$studentId%")
-      .filter(_._2.firstName like s"%$studentName%")
-      .filter(_._2.lastName like s"%$studentName%")
+      .filter(_._2.firstName like s"%$studentFirstName%")
+      .filter(_._2.lastName like s"%$studentLastName%")
       .filter(_._2.major like s"%$major%")
       .filter(_._1._2.paymentId.isDefined)
       .groupBy(p => (p._1._1.map(_._1.id), p._1._2.id, p._2.id, p._2.firstName, p._2.lastName, p._2.major))
@@ -96,9 +104,13 @@ class PaymentRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
             group.map(p => p._1._1.flatMap(_._2.defectFine)).sum.getOrElse(0)
 
           (base._1, base._2, base._3, base._4, base._5, base._6, baseOvertimeFine + subOvertimeFine, baseDefectFine + subDefectFine)
-      }.result
+      }
 
-    db.run(action)
+    val total = action.sortBy(_._1).length.result
+    val summary = action.drop((page - 1) * pageSize).take(pageSize).result
+    db.run(summary).flatMap(s => db.run(total).map(total => (s, total))).map(Right.apply).recover {
+      case _: Exception => Left(DBException)
+    }
   }
 
   def getPayment(id: String): Future[Option[(History, Option[Payment])]] = {
