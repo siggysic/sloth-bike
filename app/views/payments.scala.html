@@ -114,38 +114,40 @@
     </div>
   </div>
 
-  <table id="paymentTable" class="table table-hover table-dark">
-    <thead>
-      <tr>
-        <th>รหัสนักศึกษา</th>
-        <th>ชื่อ-นามสกุล</th>
-        <th>คณะ</th>
-        <th>ค่าปรับเกินเวลา(บาท)</th>
-        <th>ค่าปรับชำรุด(บาท)</th>
-        <th>รวมค่าปรับ(บาท)</th>
-        <th>Action</th>
-      </tr>
-    </thead>
-    <tbody>
-    @for(payment <- payments) {
-      <tr id="@payment.historyId">
-        <td>@payment.studentId</td>
-        <td>@{payment.firstName + " " + payment.lastName}</td>
-        <td>@payment.major</td>
-        <td>@payment.overtimeFine</td>
-        <td>@payment.defectFine</td>
-        <td>@{payment.overtimeFine.getOrElse(0) + payment.defectFine.getOrElse(0)}</td>
-        <td>
-          <button type="button"
-          data-target="#paymentModal"
-          data-toggle="modal"
-          id="@payment.historyId"
-          class="btn btn-primary">Pay</button>
-        </td>
-      </tr>
-    }
-    </tbody>
-  </table>
+  <div class="table-responsive">
+    <table id="paymentTable" class="table  table-hover table-dark">
+      <thead>
+        <tr>
+          <th>รหัสนักศึกษา</th>
+          <th>ชื่อ-นามสกุล</th>
+          <th>คณะ</th>
+          <th>ค่าปรับเกินเวลา(บาท)</th>
+          <th>ค่าปรับชำรุด(บาท)</th>
+          <th>รวมค่าปรับ(บาท)</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+      @for(payment <- payments) {
+        <tr id="@payment.historyId">
+          <td>@payment.studentId</td>
+          <td>@{payment.firstName + " " + payment.lastName}</td>
+          <td>@payment.major</td>
+          <td>@payment.overtimeFine</td>
+          <td>@payment.defectFine</td>
+          <td>@{payment.overtimeFine.getOrElse(0) + payment.defectFine.getOrElse(0)}</td>
+          <td>
+            <button type="button"
+            data-target="#paymentModal"
+            data-toggle="modal"
+            id="@payment.historyId"
+            class="btn btn-primary">Pay</button>
+          </td>
+        </tr>
+      }
+      </tbody>
+    </table>
+  </div>
 
    <nav aria-label="Page navigation example">
       <ul class="pagination justify-content-center">

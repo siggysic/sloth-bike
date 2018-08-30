@@ -70,28 +70,30 @@
     </div>
   }
 
-  <table id="table-clickable" class="table table-hover table-dark">
-    <thead>
-      <tr>
-      @List("เลขครุภัณฑ์", "Key Barcode", "ป้ายทะเบียน", "RFID", "Status", "Remark", "Go to detail").map{ h =>
-        <th scope="col">@h</th>
-      }
-      </tr>
-    </thead>
-    <tbody>
-      @assets.map { row =>
+  <div class="table-responsive">
+    <table id="table-clickable" class="table table-hover table-dark">
+      <thead>
         <tr>
-          <td><a href="@routes.AssetsController.viewEditAssets(row._2.id.toString)">&nbsp;</a>@row._2.pieceNo</td>
-          <td><a href="@routes.AssetsController.viewEditAssets(row._2.id.toString)">&nbsp;</a>@row._2.keyBarcode</td>
-          <td><a href="@routes.AssetsController.viewEditAssets(row._2.id.toString)">&nbsp;</a>@row._2.licensePlate</td>
-          <td><a href="@routes.AssetsController.viewEditAssets(row._2.id.toString)">&nbsp;</a>@row._2.referenceId</td>
-          <td><a href="@routes.AssetsController.viewEditAssets(row._2.id.toString)">&nbsp;</a>@row._3.status</td>
-          <td><a href="@routes.AssetsController.viewEditAssets(row._2.id.toString)">&nbsp;</a>@row._2.remark</td>
-          <td><a href="@routes.AssetsController.viewDetailAssets(row._2.id.toString)">Detail</a></td>
+        @List("เลขครุภัณฑ์", "Key Barcode", "ป้ายทะเบียน", "RFID", "Status", "Remark", "Go to detail").map{ h =>
+          <th scope="col">@h</th>
+        }
         </tr>
-      }
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        @assets.map { row =>
+          <tr>
+            <td><a href="@routes.AssetsController.viewEditAssets(row._2.id.toString)">&nbsp;</a>@row._2.pieceNo</td>
+            <td><a href="@routes.AssetsController.viewEditAssets(row._2.id.toString)">&nbsp;</a>@row._2.keyBarcode</td>
+            <td><a href="@routes.AssetsController.viewEditAssets(row._2.id.toString)">&nbsp;</a>@row._2.licensePlate</td>
+            <td><a href="@routes.AssetsController.viewEditAssets(row._2.id.toString)">&nbsp;</a>@row._2.referenceId</td>
+            <td><a href="@routes.AssetsController.viewEditAssets(row._2.id.toString)">&nbsp;</a>@row._3.status</td>
+            <td><a href="@routes.AssetsController.viewEditAssets(row._2.id.toString)">&nbsp;</a>@row._2.remark</td>
+            <td><a href="@routes.AssetsController.viewDetailAssets(row._2.id.toString)">Detail</a></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
 
 
   @assets.headOption.map { asset =>

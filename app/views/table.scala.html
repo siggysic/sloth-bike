@@ -1,21 +1,22 @@
 @(headers: Seq[String], rows: Seq[(Call, Seq[Any])])(implicit assetsFinder: AssetsFinder)
 
-<table id="table-clickable" class="table table-hover table-dark">
-  <thead>
-    <tr>
-      @headers.map{ h =>
-        <th scope="col">@h</th>
-      }
-    </tr>
-  </thead>
-  <tbody>
-    @rows.map { row =>
+<div class="table-responsive">
+  <table id="table-clickable" class="table table-hover table-dark">
+    <thead>
       <tr>
-        @row._2.map { r =>
-          <td><a href="@row._1">&nbsp;</a>@r</td>
+        @headers.map{ h =>
+          <th scope="col">@h</th>
         }
       </tr>
-    }
-  </tbody>
-</table>
-
+    </thead>
+    <tbody>
+      @rows.map { row =>
+        <tr>
+          @row._2.map { r =>
+            <td><a href="@row._1">&nbsp;</a>@r</td>
+          }
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
