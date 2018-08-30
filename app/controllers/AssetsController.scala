@@ -1,28 +1,29 @@
 package controllers
 
+import java.sql.Timestamp
 import java.util.UUID
 
+import cats.data.EitherT
 import javax.inject.{Inject, _}
 import models._
 import org.apache.poi.ss.usermodel.{DataFormatter, WorkbookFactory}
-import play.api.data.Form
+import play.api.data.{Form, FormError}
 import play.api.data.Forms._
 import play.api.mvc.MultipartFormData.FilePart
 import play.api.mvc._
-import repositories.{BikeRepository, BikeStatusRepository, HistoryRepository, StationRepository}
+import repositories._
 
 import scala.collection.JavaConversions.`deprecated iterableAsScalaIterable`
 import scala.collection.convert.ImplicitConversions.`iterator asScala`
 import scala.concurrent.{ExecutionContext, Future}
 import cats.implicits._
-
 import utils.Helpers.EitherHelper.{CatchDatabaseExp, ExtractEitherT}
 
 
 @Singleton
 class AssetsController @Inject()(cc: ControllerComponents, bikeRepo: BikeRepository,
                                  bikeStatusRepository: BikeStatusRepository, stationRepository: StationRepository,
-                                 historyRepository: HistoryRepository)
+                                 historyRepository: HistoryRepository, studentRepository: StudentRepository)
                                 (implicit assetsFinder: AssetsFinder, ec: ExecutionContext)
   extends AbstractController(cc) {
 
@@ -39,6 +40,22 @@ class AssetsController @Inject()(cc: ControllerComponents, bikeRepo: BikeReposit
       "statusId" -> number,
       "stationId" -> number
     )(BikeRequest.apply)(BikeRequest.unapply)
+  )
+
+  val bikeWithFieldForm: Form[BikeRequestWithField] = Form (
+    mapping(
+      "id" -> optional(text),
+      "keyBarcode" -> text.verifying(Contraints.validateText),
+      "referenceId" -> text.verifying(Contraints.validateText),
+      "lotNo" -> text.verifying(Contraints.validateText),
+      "licensePlate" -> text.verifying(Contraints.validateText),
+      "detail" -> optional(text),
+      "arrivalDate" -> date.verifying(Contraints.validateDate),
+      "pieceNo" -> text.verifying(Contraints.validateText),
+      "statusId" -> number,
+      "stationId" -> number,
+      "field" -> optional(text)
+    )(BikeRequestWithField.apply)(BikeRequestWithField.unapply)
   )
 
   val bikeWithNoValidateDateForm: Form[BikeRequest] = Form (
@@ -84,7 +101,7 @@ class AssetsController @Inject()(cc: ControllerComponents, bikeRepo: BikeReposit
       for {
         bStatus <- bikeStatusRepository.getStatus.dbExpToEitherT
         st <- stationRepository.getStations.dbExpToEitherT
-      } yield Ok(views.html.assetsInsert(bikeForm, fields, bStatus, st))
+      } yield Ok(views.html.assetsInsert(bikeWithFieldForm, fields, bStatus, st))
     ).extract
   }
 
@@ -118,9 +135,16 @@ class AssetsController @Inject()(cc: ControllerComponents, bikeRepo: BikeReposit
         bike <- bikeRepo.getBike(id).dbExpToEitherT
         status <- bikeStatusRepository.getStatus.dbExpToEitherT
         st <- stationRepository.getStations.dbExpToEitherT
-      } yield bike match {
-        case Some(b) => Ok(views.html.assetsEdit(bikeForm.fillAndValidate(b._1.toBikeRequest), fields, status, st))
-        case None => BadRequest(views.html.exception("Database exception."))
+        history <- historyRepository.getLastActionOfBike(id, bike.map(_._1.statusId).getOrElse(0)).dbExpToEitherT
+      } yield (bike, history) match {
+        case (Some(b), Some((h, bs))) =>
+          if(b._1.statusId == 2)
+            Ok(views.html.assetsEdit(bikeWithFieldForm.fillAndValidate(b._1.toBikeRequest.copy(field = h.studentId)), fields, status, st))
+          else if(b._1.statusId == 3)
+            Ok(views.html.assetsEdit(bikeWithFieldForm.fillAndValidate(b._1.toBikeRequest.copy(field = h.remark)), fields, status, st))
+          else Ok(views.html.assetsEdit(bikeWithFieldForm.fillAndValidate(b._1.toBikeRequest), fields, status, st))
+        case (Some(b), None) => Ok(views.html.assetsEdit(bikeWithFieldForm.fillAndValidate(b._1.toBikeRequest), fields, status, st))
+        case (None, _) => BadRequest(views.html.exception("Database exception."))
       }
     ).extract
   }
@@ -136,28 +160,105 @@ class AssetsController @Inject()(cc: ControllerComponents, bikeRepo: BikeReposit
 
   def insertAssets = Action.async { implicit request: Request[AnyContent] =>
 
-    val errorFunction = { formWithErrors: Form[BikeRequest] =>
+    val errorFunction = { formWithErrors: Form[BikeRequestWithField] =>
       (
         for {
           bStatus <- bikeStatusRepository.getStatus.dbExpToEitherT
           st <- stationRepository.getStations.dbExpToEitherT
-        } yield BadRequest(views.html.assetsInsert(formWithErrors, fields, bStatus, st))
+        } yield {
+          formWithErrors("statusId").value match {
+            case Some("2") => BadRequest(views.html.assetsInsert(
+              formWithErrors.withError(FormError("field", "Student id is required" :: Nil)), fields, bStatus, st))
+            case Some("3") => BadRequest(views.html.assetsInsert(
+              formWithErrors.withError(FormError("field", "Remark is required" :: Nil)), fields, bStatus, st))
+            case _ => BadRequest(views.html.assetsInsert(formWithErrors, fields, bStatus, st))
+          }
+        }
       ).extract
     }
 
-    val successFunction = { data: BikeRequest =>
-      bikeRepo.create(data.toBike).flatMap {
-        case 1 =>  (
-          for {
-            bikes <- bikeRepo.getBikesRelational(BikeQuery(None, pageSize.page, pageSize.size)).dbExpToEitherT
-            status <- bikeStatusRepository.getStatus.dbExpToEitherT
-          } yield Ok(views.html.assets(bikeSearchForm, bikes, fields, pageSize, status))
-        ).extract
-        case _ => Future.successful(BadRequest(views.html.exception("Database exception.")))
-      }
+    val successFunction = { data: BikeRequestWithField =>
+      (
+        for {
+          status <- bikeStatusRepository.getStatus.dbExpToEitherT
+          st <- stationRepository.getStations.dbExpToEitherT
+          validate <- {
+            val preBike = data.toBike
+            val result = data.statusId match {
+              case 1 => bikeRepo.create(preBike).flatMap {
+                case 1 => (
+                  for {
+                    queryBikes <- bikeRepo.getBikesRelational(BikeQuery(None, pageSize.page, pageSize.size)).dbExpToEitherT
+                  } yield Ok(views.html.assets(bikeSearchForm, queryBikes, fields, pageSize, status))
+                ).value
+                case _ => Future.successful(Left(BadRequest(views.html.exception("Database exception."))))
+              }
+              case 2 => data.field match {
+                case Some(value) => studentRepository.getStudentById(value).flatMap {
+                  case Right(Some(student)) => bikeRepo.create(preBike).flatMap {
+                    case 1 =>
+                      val history = History(
+                        id = UUID.randomUUID().toString,
+                        studentId = Some(student.id),
+                        remark = None,
+                        borrowDate = Some(new Timestamp(System.currentTimeMillis())),
+                        returnDate = None,
+                        station = Some(data.stationId),
+                        bikeId = preBike.id,
+                        paymentId = None,
+                        statusId = data.statusId
+                      )
+                      historyRepository.create(history).flatMap {
+                        case 1 => (
+                          for {
+                            queryBikes <- bikeRepo.getBikesRelational(BikeQuery(None, pageSize.page, pageSize.size)).dbExpToEitherT
+                          } yield Ok(views.html.assets(bikeSearchForm, queryBikes, fields, pageSize, status))
+                        ).value
+                        case _ => Future.successful(Left(BadRequest(views.html.exception("Database exception."))))
+                      }
+                    case _ => Future.successful(Left(BadRequest(views.html.exception("Database exception."))))
+                  }
+                  case Right(None) =>
+                    Future.successful(Left(BadRequest(views.html.assetsInsert(bikeWithFieldForm.fillAndValidate(data).withError(FormError("field", "Student not found" :: Nil)), fields, status, st))))
+                  case Left(_) => Future.successful(Left(BadRequest(views.html.exception("Database exception."))))
+                }
+                case None => Future.successful(Left(BadRequest(views.html.assetsInsert(bikeWithFieldForm.fillAndValidate(data).withError(FormError("field", "Student id is required" :: Nil)), fields, status, st))))
+              }
+              case 3 => data.field match {
+                case Some(value) => bikeRepo.create(preBike).flatMap {
+                  case 1 =>
+                    val history = History(
+                      id = UUID.randomUUID().toString,
+                      studentId = None,
+                      remark = Some(value),
+                      borrowDate = Some(new Timestamp(System.currentTimeMillis())),
+                      returnDate = None,
+                      station = Some(data.stationId),
+                      bikeId = preBike.id,
+                      paymentId = None,
+                      statusId = data.statusId
+                    )
+                    historyRepository.create(history).flatMap {
+                      case 1 => (
+                        for {
+                          queryBikes <- bikeRepo.getBikesRelational(BikeQuery(None, pageSize.page, pageSize.size)).dbExpToEitherT
+                        } yield Ok(views.html.assets(bikeSearchForm, queryBikes, fields, pageSize, status))
+                      ).value
+                      case _ => Future.successful(Left(BadRequest(views.html.exception("Database exception."))))
+                    }
+                  case _ => Future.successful(Left(BadRequest(views.html.exception("Database exception."))))
+                }
+                case None => Future.successful(Left(BadRequest(views.html.assetsInsert(bikeWithFieldForm.fillAndValidate(data).withError(FormError("field", "Remark is required" :: Nil)), fields, status, st))))
+              }
+              case _ => Future.successful(Left(BadRequest(views.html.exception("Database exception."))))
+            }
+            EitherT(result)
+          }
+        } yield validate
+      ).extract
     }
 
-    val formValidationResult: Form[BikeRequest] = bikeForm.bindFromRequest
+    val formValidationResult: Form[BikeRequestWithField] = bikeWithFieldForm.bindFromRequest
     formValidationResult.fold(
       errorFunction,
       successFunction
@@ -165,28 +266,120 @@ class AssetsController @Inject()(cc: ControllerComponents, bikeRepo: BikeReposit
   }
 
   def editAssets = Action.async { implicit request: Request[AnyContent] =>
-    val errorFunction = { formWithErrors: Form[BikeRequest] =>
+
+    val errorFunction = { formWithErrors: Form[BikeRequestWithField] =>
       (
         for {
           bStatus <- bikeStatusRepository.getStatus.dbExpToEitherT
           st <- stationRepository.getStations.dbExpToEitherT
-        } yield BadRequest(views.html.assetsEdit(formWithErrors, fields, bStatus, st))
+        } yield {
+          formWithErrors("statusId").value match {
+            case Some("2") => BadRequest(views.html.assetsEdit(
+              formWithErrors.withError(FormError("field", "Student id is required" :: Nil)), fields, bStatus, st))
+            case Some("3") => BadRequest(views.html.assetsEdit(
+              formWithErrors.withError(FormError("field", "Remark is required" :: Nil)), fields, bStatus, st))
+            case _ => BadRequest(views.html.assetsEdit(formWithErrors, fields, bStatus, st))
+          }
+        }
       ).extract
     }
 
-    val successFunction = { data: BikeRequest =>
-      bikeRepo.update(data.toBike).flatMap {
-        case 1 =>  (
-          for {
-            bikes <- bikeRepo.getBikesRelational(BikeQuery(None, pageSize.page, pageSize.size)).dbExpToEitherT
-            status <- bikeStatusRepository.getStatus.dbExpToEitherT
-          } yield Ok(views.html.assets(bikeSearchForm, bikes, fields, pageSize, status))
-        ).extract
-        case _ => Future.successful(BadRequest(views.html.exception("Database exception.")))
-      }
+    val successFunction = { data: BikeRequestWithField =>
+      (
+        for {
+          oldBike <- bikeRepo.getBike(data.id.getOrElse("")).dbExpToEitherT
+          status <- bikeStatusRepository.getStatus.dbExpToEitherT
+          st <- stationRepository.getStations.dbExpToEitherT
+          validate <- {
+            val preBike = data.toBike
+            val result = data.statusId match {
+              case 1 => bikeRepo.update(preBike).flatMap {
+                case 1 => (
+                  for {
+                    queryBikes <- bikeRepo.getBikesRelational(BikeQuery(None, pageSize.page, pageSize.size)).dbExpToEitherT
+                  } yield Ok(views.html.assets(bikeSearchForm, queryBikes, fields, pageSize, status))
+                ).value
+                case _ => Future.successful(Left(BadRequest(views.html.exception("Database exception."))))
+              }
+              case 2 => data.field match {
+                case Some(value) => studentRepository.getStudentById(value).flatMap {
+                  case Right(Some(student)) => bikeRepo.update(preBike).flatMap {
+                    case 1 =>
+                      if(oldBike.map(_._1.statusId != 2).forall(identity)) {
+                        val history = History(
+                          id = UUID.randomUUID().toString,
+                          studentId = Some(student.id),
+                          remark = None,
+                          borrowDate = Some(new Timestamp(System.currentTimeMillis())),
+                          returnDate = None,
+                          station = Some(data.stationId),
+                          bikeId = preBike.id,
+                          paymentId = None,
+                          statusId = data.statusId
+                        )
+                        historyRepository.create(history).flatMap {
+                          case 1 => (
+                            for {
+                              queryBikes <- bikeRepo.getBikesRelational(BikeQuery(None, pageSize.page, pageSize.size)).dbExpToEitherT
+                            } yield Ok(views.html.assets(bikeSearchForm, queryBikes, fields, pageSize, status))
+                          ).value
+                          case _ => Future.successful(Left(BadRequest(views.html.exception("Database exception."))))
+                        }
+                      } else (
+                        for {
+                          queryBikes <- bikeRepo.getBikesRelational(BikeQuery(None, pageSize.page, pageSize.size)).dbExpToEitherT
+                        } yield Ok(views.html.assets(bikeSearchForm, queryBikes, fields, pageSize, status))
+                      ).value
+
+                    case _ => Future.successful(Left(BadRequest(views.html.exception("Database exception."))))
+                  }
+                  case Right(None) =>
+                    Future.successful(Left(BadRequest(views.html.assetsEdit(bikeWithFieldForm.fillAndValidate(data).withError(FormError("field", "Student not found" :: Nil)), fields, status, st))))
+                  case Left(_) => Future.successful(Left(BadRequest(views.html.exception("Database exception."))))
+                }
+                case None => Future.successful(Left(BadRequest(views.html.assetsEdit(bikeWithFieldForm.fillAndValidate(data).withError(FormError("field", "Student id is required" :: Nil)), fields, status, st))))
+              }
+              case 3 => data.field match {
+                case Some(value) => bikeRepo.update(preBike).flatMap {
+                  case 1 =>
+                    if(oldBike.map(_._1.statusId != 3).forall(identity)) {
+                      val history = History(
+                        id = UUID.randomUUID().toString,
+                        studentId = None,
+                        remark = Some(value),
+                        borrowDate = Some(new Timestamp(System.currentTimeMillis())),
+                        returnDate = None,
+                        station = Some(data.stationId),
+                        bikeId = preBike.id,
+                        paymentId = None,
+                        statusId = data.statusId
+                      )
+                      historyRepository.create(history).flatMap {
+                        case 1 => (
+                          for {
+                            queryBikes <- bikeRepo.getBikesRelational(BikeQuery(None, pageSize.page, pageSize.size)).dbExpToEitherT
+                          } yield Ok(views.html.assets(bikeSearchForm, queryBikes, fields, pageSize, status))
+                        ).value
+                        case _ => Future.successful(Left(BadRequest(views.html.exception("Database exception."))))
+                      }
+                    } else (
+                      for {
+                        queryBikes <- bikeRepo.getBikesRelational(BikeQuery(None, pageSize.page, pageSize.size)).dbExpToEitherT
+                      } yield Ok(views.html.assets(bikeSearchForm, queryBikes, fields, pageSize, status))
+                    ).value
+                  case _ => Future.successful(Left(BadRequest(views.html.exception("Database exception."))))
+                }
+                case None => Future.successful(Left(BadRequest(views.html.assetsEdit(bikeWithFieldForm.fillAndValidate(data).withError(FormError("field", "Remark is required" :: Nil)), fields, status, st))))
+              }
+              case _ => Future.successful(Left(BadRequest(views.html.exception("Database exception."))))
+            }
+            EitherT(result)
+          }
+        } yield validate
+      ).extract
     }
 
-    val formValidationResult: Form[BikeRequest] = bikeWithNoValidateDateForm.bindFromRequest
+    val formValidationResult: Form[BikeRequestWithField] = bikeWithFieldForm.bindFromRequest
     formValidationResult.fold(
       errorFunction,
       successFunction

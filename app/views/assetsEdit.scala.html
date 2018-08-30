@@ -1,4 +1,4 @@
-@(form: Form[BikeRequest], fields: BikeFields, bikesStatus: Seq[BikeStatus], stations: Seq[Station]
+@(form: Form[BikeRequestWithField], fields: BikeFields, bikesStatus: Seq[BikeStatus], stations: Seq[Station]
 )(implicit assetsFinder: AssetsFinder, request: Request[AnyContent])
 
 @validateClass(field: String) = @{
@@ -112,6 +112,15 @@
           @if(form.errors.find(_.key == fields.stationId).nonEmpty) {
             <div class="invalid-feedback">
             @form.errors(fields.stationId).map(_.message)
+            </div>
+          }
+        </div>
+        <div class="form-group col-md-6">
+          <label>Student ID, Remark</label>
+          <input name="@fields.field" type="text" class="form-control @validateClass(fields.field)" placeholder="Student ID for borrow status, Remark for out of order status" value="@getValue(fields.field)">
+          @if(form.errors.find(_.key == fields.field).nonEmpty) {
+            <div class="invalid-feedback">
+            @form.errors(fields.field).map(_.message)
             </div>
           }
         </div>

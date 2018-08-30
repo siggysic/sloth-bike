@@ -55,29 +55,29 @@
 }
 
 @main("MU Sloth Bike", assetsFinder) {
-  @helper.form(action = routes.StationController.filterStationAction(), 'class -> "col-md-12") {
+  @helper.form(action = routes.StationController.filterStationAction()) {
 
     <div class="card border-secondary mb-3">
       <div class="card-header">Station List</div>
       <div class="card-body text-secondary">
         <div class="form-row">
-          <div class="form-group col-md-6">
-            <label for="name" class="col-md-3">Station: </label>
-            <div class="col-md-8">
-              <input type="text" id="name" name="name" class="form-control form-control-sm" value='@form.data.get("name")'/>
-            </div>
+          <div class="form-group col-md-4">
+            <label for="name">Station: </label>
+            <input type="text" id="name" name="name" class="form-control form-control-sm" value='@form.data.get("name")'/>
           </div>
-          <div class="form-group col-md-6">
+          <div class="form-group col-md-1"></div>
+          <div class="form-group col-md-5">
             <label for="available" class="col-md-6">Available Asset: </label>
-            <div class="col-md-6">
-              <input type="number" min="0" id="available" name="available" class="form-control form-control-sm" value='@form.data.get("available")'/>
-            </div>
+            <input type="number" min="0" id="available" name="available" class="form-control form-control-sm" value='@form.data.get("available")'/>
           </div>
         </div>
         <div class="form-row">
-          <div class="form-group col-md-11">
-            <button type="reset" class="btn btn-danger mx-1 float-right">Reset</button>
-            <button type="submit" class="btn btn-success mx-1 float-right">Search</button>
+          <div class="form-group col-md-8"></div>
+          <div class="form-group col-md-2">
+            <button type="submit" class="btn btn-success btn-block">Search</button>
+          </div>
+          <div class="form-group col-md-2">
+            <button type="reset" class="btn btn-danger btn-block">Reset</button>
           </div>
         </div>
       </div>
@@ -85,7 +85,7 @@
 
     <div class="form-row">
       <div class="form-group col-md-2">
-        <a href="/stations/add" class="btn btn-primary">Add New</a>
+        <a href="/stations/add" class="btn btn-primary btn-block">Add New</a>
       </div>
     </div>
 

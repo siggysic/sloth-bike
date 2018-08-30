@@ -56,19 +56,19 @@ class BikeController @Inject()(cc: ControllerComponents, bikeRepository: BikeRep
       for {
         bike <- bikeRepository.getBikeByKeyBarcode(bid).map {
           case Right(Some(value)) => Right(value)
-          case Right(None) => Left(NotFoundException("Bike"))
+          case Right(None) => Left(NotFoundThaiLangException("จักรยาน"))
           case Left(exp) => Left(exp)
         }.expToEitherT
 
         history <- historyRepository.getLastActionOfBike(bike.id, 2).map {
           case Right(Some(value)) => Right(value)
-          case Right(None) => Left(NotFoundException("Bike history"))
+          case Right(None) => Left(NotFoundThaiLangException("ประวัติจักรยาน"))
           case Left(exp) => Left(exp)
         }.expToEitherT
 
         student <- studentRepository.getStudentById(history._1.studentId.getOrElse("")).map {
           case Right(Some(value)) => Right(value)
-          case Right(None) => Left(NotFoundException("Student"))
+          case Right(None) => Left(NotFoundThaiLangException("นักศึกษา"))
           case Left(exp) => Left(exp)
         }.expToEitherT
       } yield {
@@ -114,7 +114,7 @@ class BikeController @Inject()(cc: ControllerComponents, bikeRepository: BikeRep
             case Right(data) =>
               data match {
                 case Some(b) => Right(b)
-                case None => Left(NotFoundException("Bike"))
+                case None => Left(NotFoundThaiLangException("จักรยาน"))
               }
             case Left(_) => Left(DBException)
           }
@@ -126,7 +126,7 @@ class BikeController @Inject()(cc: ControllerComponents, bikeRepository: BikeRep
           val f: Future[Either[CustomException, Option[(History, BikeStatus)]]] = historyRepository.getLastActionOfStudent(req.studentId) map {
             case Right(data) =>
               data match {
-                case Some(b) => Left(BadRequestException(s"${req.studentId} cannot borrow the bike"))
+                case Some(b) => Left(BadRequestException(s"${req.studentId} ไม่สามารถยืมจักรยานได้"))
                 case None => Right(data)
               }
             case Left(_) => Left(DBException)
@@ -140,7 +140,7 @@ class BikeController @Inject()(cc: ControllerComponents, bikeRepository: BikeRep
             case Right(data) =>
               data match {
                 case Some(status) => Right(status)
-                case None => Left(NotFoundException("Not found"))
+                case None => Left(NotFoundThaiLangException("สถานะ"))
               }
             case Left(_) => Left(DBException)
           }
@@ -160,7 +160,7 @@ class BikeController @Inject()(cc: ControllerComponents, bikeRepository: BikeRep
             case Right(data) =>
               data match {
                 case Some(b) => Right(b)
-                case None => Left(NotFoundException("Not found"))
+                case None => Left(NotFoundThaiLangException("จักรยาน"))
               }
             case Left(_) => Left(DBException)
           }
@@ -212,9 +212,9 @@ class BikeController @Inject()(cc: ControllerComponents, bikeRepository: BikeRep
               data match {
                 case Some(b) => b.statusId == 2 match {
                   case true => Right(b)
-                  case false => Left(BadRequestException("Bike is not borrowed"))
+                  case false => Left(BadRequestException("จักรยานไม่สามารถยืมได้"))
                 }
-                case None => Left(NotFoundException("Bike"))
+                case None => Left(NotFoundThaiLangException("จักรยาน"))
               }
             case Left(_) => Left(DBException)
           }
@@ -228,9 +228,9 @@ class BikeController @Inject()(cc: ControllerComponents, bikeRepository: BikeRep
               data match {
                 case Some(b) => b._1.id == req.historyId match {
                   case true => Right(b)
-                  case false => Left(BadRequestException("History not match"))
+                  case false => Left(BadRequestException("ประวัติจักรยานไม่ตรงกัน"))
                 }
-                case None => Left(NotFoundException("Bike"))
+                case None => Left(NotFoundThaiLangException("จักรยาน"))
               }
             case Left(_) => Left(DBException)
           }
@@ -243,7 +243,7 @@ class BikeController @Inject()(cc: ControllerComponents, bikeRepository: BikeRep
             case Right(data) =>
               data match {
                 case Some(status) => Right(status)
-                case None => Left(NotFoundException("Not found"))
+                case None => Left(NotFoundThaiLangException("สถานะ"))
               }
             case Left(_) => Left(DBException)
           }
@@ -296,9 +296,9 @@ class BikeController @Inject()(cc: ControllerComponents, bikeRepository: BikeRep
             data match {
               case Some(b) => b.statusId == 1 match {
                 case true => Right(b)
-                case false => Left(BadRequestException("Bike is not available"))
+                case false => Left(BadRequestException("จักรยานไม่พร้อมใช้งาน"))
               }
-              case None => Left(NotFoundException("Bike"))
+              case None => Left(NotFoundThaiLangException("จักรยาน"))
             }
           case Left(_) => Left(DBException)
         }
@@ -311,7 +311,7 @@ class BikeController @Inject()(cc: ControllerComponents, bikeRepository: BikeRep
           case Right(data) =>
             data match {
               case Some(s) => Right(s)
-              case None => Left(NotFoundException("Not found"))
+              case None => Left(NotFoundThaiLangException("สถานะ"))
             }
 
           case Left(_) => Left(DBException)
@@ -360,9 +360,9 @@ class BikeController @Inject()(cc: ControllerComponents, bikeRepository: BikeRep
               data match {
                 case Some(b) => b.statusId == 3 match {
                   case true => Right(b)
-                  case false => Left(BadRequestException("Bike is not out of order"))
+                  case false => Left(BadRequestException("สถานะของจักรยานไม่สามารถคืนได้"))
                 }
-                case None => Left(NotFoundException("Bike"))
+                case None => Left(NotFoundThaiLangException("จักรยาน"))
               }
             case Left(_) => Left(DBException)
           }
@@ -375,7 +375,7 @@ class BikeController @Inject()(cc: ControllerComponents, bikeRepository: BikeRep
             case Right(data) =>
               data match {
                 case Some(h) => Right(h)
-                case None => Left(NotFoundException("History"))
+                case None => Left(NotFoundThaiLangException("ประวัติจักรยาน"))
               }
             case Left(_) => Left(DBException)
           }
@@ -398,7 +398,7 @@ class BikeController @Inject()(cc: ControllerComponents, bikeRepository: BikeRep
             case Right(data) =>
               data match {
                 case Some(status) => Right(status)
-                case None => Left(NotFoundException("Not found"))
+                case None => Left(NotFoundThaiLangException("สถานะ"))
               }
             case Left(_) => Left(DBException)
           }
@@ -410,7 +410,7 @@ class BikeController @Inject()(cc: ControllerComponents, bikeRepository: BikeRep
             case Right(data) =>
               data match {
                 case Some(status) => Right(status)
-                case None => Left(NotFoundException("Not found"))
+                case None => Left(NotFoundThaiLangException("สถานะ"))
               }
             case Left(_) => Left(DBException)
           }

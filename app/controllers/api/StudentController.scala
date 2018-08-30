@@ -17,7 +17,7 @@ class StudentController @Inject()(studentRepository: StudentRepository) extends 
     val result: Future[Either[CustomException, Student]] = (
       for {
         st <- studentRepository.getStudentById(id).map {
-          case Right(None) => Left(NotFoundException("Student"))
+          case Right(None) => Left(NotFoundThaiLangException("นักศึกษา"))
           case Right(Some(stu)) => Right(stu)
           case Left(other) => Left(other)
         }.expToEitherT

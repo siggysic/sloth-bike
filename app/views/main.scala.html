@@ -29,13 +29,13 @@
             <span class="navbar-toggler-icon"></span>
           </button>
           <div class="collapse navbar-collapse" id="navbarTogglerDemo01">
-            <a class="navbar-brand" href="#">MU Sloth Bike</a>
+            <a class="navbar-brand" href="@routes.AssetsController.viewAssets()">MU Sloth Bike</a>
             <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
               <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="@routes.LoginController.viewLogin()" role="button" aria-haspopup="true" aria-expanded="true" data-target="#assetDropdown">Assets</a>
+                <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="@routes.AssetsController.viewAssets()" role="button" aria-haspopup="true" aria-expanded="true" data-target="#assetDropdown">Assets</a>
                 <div class="dropdown-menu" id="assetDropdown">
-                  <a class="dropdown-item" href="#">Insert</a>
-                  <a class="dropdown-item" href="#">Import</a>
+                  <a class="dropdown-item" href="@routes.AssetsController.viewInsertAssets()">Insert asset</a>
+                  <a class="dropdown-item" href="@routes.AssetsController.viewImportAssets()">Import assets</a>
                 </div>
               </li>
               <li class="nav-item" >
