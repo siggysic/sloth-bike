@@ -135,7 +135,7 @@
           <td>@payment.major</td>
           <td>@payment.overtimeFine</td>
           <td>@payment.defectFine</td>
-          <td>@{payment.overtimeFine.getOrElse(0) + payment.defectFine.getOrElse(0)}</td>
+          <td>@{payment.overtimeFine + payment.defectFine}</td>
           <td>
             <button type="button"
             data-target="#paymentModal"

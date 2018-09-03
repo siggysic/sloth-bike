@@ -1,5 +1,7 @@
 @(stations: Seq[StationResult], total: Int, form: Form[StationQuery])(implicit assetsFinder: AssetsFinder, request: Request[AnyContent])
 
+@availableList = @{List(List("0","20"), List("20","40"), List("40","60"), List("60","80"), List("80","100"), List("100"))}
+
 @currentPage(form: Form[StationQuery]) = @{
   val pageNo = form.data.get("page").map(_.toInt).getOrElse(1)
   pageNo match {
@@ -49,9 +51,8 @@
 
 @queryParam(form: Form[StationQuery], page: Int) = @{
   val nameQuery = form.data.get("name").map(str => s"name=$str")
-  val minAvailableQuery = form.data.get("minAvailable").map(str => s"minAvailable=$str")
-  val maxAvailableQuery = form.data.get("maxAvailable").map(str => s"maxAvailable=$str")
-  val queryString = Seq(nameQuery, minAvailableQuery, maxAvailableQuery).flatten.mkString("&") + "&page=" + page.toString
+  val availableAsset = form.data.get("availableAsset").map(str => s"availableAsset=$str")
+  val queryString = Seq(nameQuery, availableAsset).flatten.mkString("&") + "&page=" + page.toString
   queryString
 }
 
@@ -70,13 +71,24 @@
           <div class="form-group col-md-6">
             <label>Available Asset: </label>
             <div class="row">
-              <div class="col">
-                <input type="number" min="0" id="minAvailable" name="minAvailable" class="form-control form-control-sm" value='@form.data.get("minAvailable")'/>
-              </div>
-              -
-              <div class="col">
-                <input type="number" min="0" id="maxAvailable" name="maxAvailable" class="form-control form-control-sm" value='@form.data.get("maxAvailable")'/>
-              </div>
+              <select id="availableAsset" name="availableAsset" class="form-control" value='@form.data.get("availableAsset")' >
+                <option value='' selected="selected"></option>
+                @for(item <- availableList) {
+                  @if(item.mkString(",") == form.data.get("availableAsset").getOrElse("")) {
+                    @if(item.mkString(",") == "100") {
+                      <option value='@item.mkString(",")' selected="selected">100+</option>
+                    } else {
+                      <option value='@item.mkString(",")' selected="selected">@item.mkString("-")</option>
+                    }
+                  } else {
+                    @if(item.mkString(",") == "100") {
+                      <option value='@item.mkString(",")'>100+</option>
+                    } else {
+                      <option value='@item.mkString(",")'>@item.mkString("-")</option>
+                    }
+                  }
+                }
+              </select>
             </div>
           </div>
         </div>

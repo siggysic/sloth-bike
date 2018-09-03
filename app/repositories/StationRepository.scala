@@ -36,6 +36,19 @@ class StationRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
   }
 
   def getStations(query: StationQuery): Future[(Seq[(Int, String, String, Int)], Int)] = {
+    val assetLength = query.availableAsset.map {
+      case "" => (None, None)
+      case "100" => (Some(100), None)
+      case s =>
+        s.split(",").toList match {
+          case h1 :: h2 :: Nil => (Some(h1.toInt), Some(h2.toInt))
+          case _ => (None, None)
+        }
+    }
+
+    val min = assetLength.flatMap(_._1)
+    val max = assetLength.flatMap(_._2)
+
     val filterByName = query.name match {
       case Some(name) => stations.filter(_.name like s"%$name%")
       case None => stations
@@ -48,12 +61,12 @@ class StationRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
           (base._1, base._2, base._3, group.map(_._2.map(_.id)).countDistinct)
       })
 
-    val filterByMinAvailable = query.minAvailable match {
+    val filterByMinAvailable = min match {
       case Some(minAvailable) => joinBikes.filter(_._4 >= minAvailable)
       case None => joinBikes
     }
 
-    val filterByMaxAvailable = query.maxAvailable match {
+    val filterByMaxAvailable = max match {
       case Some(maxAvailable) => filterByMinAvailable.filter(_._4 <= maxAvailable)
       case None => filterByMinAvailable
     }

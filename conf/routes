@@ -31,7 +31,7 @@ GET     /asset/search-barcode       controllers.AssetsController.searchOrPrintBa
 POST    /login                      controllers.LoginController.doLogin
 GET    /logout                     controllers.LoginController.doLogout
 
-GET     /stations                   controllers.StationController.viewStations(name: Option[String] ?= None, minAvailable: Option[Int] ?= None, maxAvailable: Option[Int] ?= None, page: Int ?= 1)
+GET     /stations                   controllers.StationController.viewStations(name: Option[String] ?= None, availableAsset: Option[String] ?= None, page: Int ?= 1)
 + nocsrf
 POST    /stations                   controllers.StationController.filterStationAction
 GET     /stations/add               controllers.StationController.viewAddStation
