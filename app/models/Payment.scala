@@ -12,7 +12,7 @@ case class PaymentSummary(id: String, overtimeFine: Option[Int], defectFine: Opt
 
 
 case class FullPayment(paymentId: String, historyId: String, studentId: String, firstName: String, lastName: String,
-                       major: String, overtimeFine: Option[Int], defectFine: Option[Int])
+                       major: String, overtimeFine: Int, defectFine: Int)
 
 case class PaymentReturn(overtimeFine: Int, defectFine: Int, note: String)
 

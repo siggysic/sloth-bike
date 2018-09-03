@@ -19,6 +19,11 @@ $(document).ready(function() {
             url: '/api/history/' + currentId,
             success: function(json) {
                 var data = json.data;
+                var borrowDate = timeConverter(data.history.borrowDate)
+                console.log(data.history.borrowDate)
+                var returnDate = timeConverter(data.history.returnDate)
+                                console.log(data.history.returnDate)
+
                 paymentId = data.payment.id
                 $("#paymentModal .modal-body").html(`
                     <div class="col-md-12 row">
@@ -29,10 +34,10 @@ $(document).ready(function() {
                             <p>${data.student.id}</p>
                             <p>${data.student.firstName} ${data.student.lastName}</p>
                             <p>${data.student.major}</p>
-                            <p>Start: ${data.history.borrowDate}</p>
-                            <p>To: ${data.history.returnDate}</p>
-                            <p>ค่าปรับเกินเวลา: ${data.payment.overtimeFine}</p>
-                            <p>ค่าปรับชำรุด: ${data.payment.defectFine}</p>
+                            <p>Start: ${borrowDate}</p>
+                            <p>To: ${returnDate}</p>
+                            <p>ค่าปรับเกินเวลา: ${data.payment.overtimeFine} บาท</p>
+                            <p>ค่าปรับชำรุด: ${data.payment.defectFine} บาท</p>
                             <p>สาเหตุ: ${data.payment.note}</p>
                             <div class="form-group">
                                 <label for="fine" class="col-form-label">ค่าอื่นๆ(ถ้ามี): </label>
@@ -49,6 +54,19 @@ $(document).ready(function() {
         });
     });
 
+    function timeConverter(UNIX_timestamp){
+      var a = new Date(UNIX_timestamp);
+      var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      var year = a.getFullYear();
+      var month = months[a.getMonth()];
+      var date = a.getDate();
+      var hour = a.getHours();
+      var min = a.getMinutes();
+      var sec = a.getSeconds();
+      var time = date + ' ' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec ;
+      return time;
+    }
+
     $("#submitUpdate").click(function() {
        var data = $("#paymentModal form").serializeArray();
 
@@ -58,8 +76,6 @@ $(document).ready(function() {
        });
        json.fine = Number(json.fine)
        json.parentId = paymentId
-       console.log(json)
-
        $.ajax({
             type: 'POST',
             url: '/api/payments',
