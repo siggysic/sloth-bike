@@ -40,7 +40,7 @@ class LoginController @Inject()(cc: ControllerComponents, bikeRepo: BikeReposito
       for {
         status <- bikeStatusRepository.getStatus.map { es =>
           es.right.map { rs =>
-            (rs.find(_.status == "Available"), rs.find(_.status == "OutOfOrder")) match {
+            (rs.find(_.id == 1), rs.find(_.id == 3)) match {
               case (Some(avail), Some(out)) => (Some(avail), Some(out))
               case other => other
             }
@@ -49,8 +49,8 @@ class LoginController @Inject()(cc: ControllerComponents, bikeRepo: BikeReposito
 
         bikeAvail <- bikeRepo.countBikeByStatusId(status._1.map(_.id).getOrElse(0)).dbExpToEitherT
         bikeOut <- bikeRepo.countBikeByStatusId(status._2.map(_.id).getOrElse(0)).dbExpToEitherT
-        borrowOneDay <- bikeRepo.getTotalBikeBorrow("Borrowed", new Timestamp(c.getTime.getTime)).dbExpToEitherT
-        borrowMoreThanOne <- bikeRepo.getTotalBikeBorrow("Borrowed", new Timestamp(c.getTime.getTime), false).dbExpToEitherT
+        borrowOneDay <- bikeRepo.getTotalBikeBorrow(2, new Timestamp(c.getTime.getTime)).dbExpToEitherT
+        borrowMoreThanOne <- bikeRepo.getTotalBikeBorrow(2, new Timestamp(c.getTime.getTime), false).dbExpToEitherT
       } yield Ok(views.html.login(loginForm, fields, GraphLogin(bikeAvail, bikeOut, borrowOneDay, borrowMoreThanOne)))
     ).extract
   }
@@ -64,7 +64,7 @@ class LoginController @Inject()(cc: ControllerComponents, bikeRepo: BikeReposito
         for {
           status <- bikeStatusRepository.getStatus.map { es =>
             es.right.map { rs =>
-              (rs.find(_.status == "Available"), rs.find(_.status == "OutOfOrder")) match {
+              (rs.find(_.id == 1), rs.find(_.id == 3)) match {
                 case (Some(avail), Some(out)) => (Some(avail), Some(out))
                 case other => other
               }
@@ -73,8 +73,8 @@ class LoginController @Inject()(cc: ControllerComponents, bikeRepo: BikeReposito
 
           bikeAvail <- bikeRepo.countBikeByStatusId(status._1.map(_.id).getOrElse(0)).dbExpToEitherT
           bikeOut <- bikeRepo.countBikeByStatusId(status._2.map(_.id).getOrElse(0)).dbExpToEitherT
-          borrowOneDay <- bikeRepo.getTotalBikeBorrow("Borrowed", new Timestamp(c.getTime.getTime)).dbExpToEitherT
-          borrowMoreThanOne <- bikeRepo.getTotalBikeBorrow("Borrowed", new Timestamp(c.getTime.getTime), false).dbExpToEitherT
+          borrowOneDay <- bikeRepo.getTotalBikeBorrow(2, new Timestamp(c.getTime.getTime)).dbExpToEitherT
+          borrowMoreThanOne <- bikeRepo.getTotalBikeBorrow(2, new Timestamp(c.getTime.getTime), false).dbExpToEitherT
         } yield BadRequest(views.html.login(formWithErrors, fields, GraphLogin(bikeAvail, bikeOut, borrowOneDay, borrowMoreThanOne))).withNewSession
       ).extract
     }

@@ -139,11 +139,11 @@ class BikeRepository @Inject() (protected val dbConfigProvider: DatabaseConfigPr
     getBikePagination(querySearchWithStatus, bikeQuery)
   }
 
-  def getTotalBikeBorrow(statusName: String, date: Timestamp, option: Boolean = true) = {
+  def getTotalBikeBorrow(statusId: Int, date: Timestamp, option: Boolean = true) = {
     val action = for {
       ((b, bs), h) <- {
-        if(option) bike join status on ((b, bs) => b.statusId === bs.id && bs.name === statusName) join history on ((b, h) => h.borrowDate <= date)
-        else bike join status on ((b, bs) => b.statusId === bs.id && bs.name === statusName) join history on ((b, h) => h.borrowDate > date)
+        if(option) bike join status on ((b, bs) => b.statusId === bs.id && bs.id === statusId) join history on ((b, h) => h.borrowDate <= date)
+        else bike join status on ((b, bs) => b.statusId === bs.id && bs.id === statusId) join history on ((b, h) => h.borrowDate > date)
       }
     } yield b
 

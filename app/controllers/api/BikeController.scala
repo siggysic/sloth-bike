@@ -136,7 +136,7 @@ class BikeController @Inject()(cc: ControllerComponents, bikeRepository: BikeRep
         }
 
         status <- {
-          val f: Future[Either[CustomException, BikeStatus]] = statusRepository.getStatusByText("Borrowed") map {
+          val f: Future[Either[CustomException, BikeStatus]] = statusRepository.getStatusById(2) map {
             case Right(data) =>
               data match {
                 case Some(status) => Right(status)
@@ -239,7 +239,7 @@ class BikeController @Inject()(cc: ControllerComponents, bikeRepository: BikeRep
         }
 
         status <- {
-          val f: Future[Either[CustomException, BikeStatus]] = statusRepository.getStatusByText("Available") map {
+          val f: Future[Either[CustomException, BikeStatus]] = statusRepository.getStatusById(1) map {
             case Right(data) =>
               data match {
                 case Some(status) => Right(status)
@@ -307,7 +307,7 @@ class BikeController @Inject()(cc: ControllerComponents, bikeRepository: BikeRep
       }
 
       status <- {
-        val f: Future[Either[CustomException, BikeStatus]] = statusRepository.getStatusByText("OutOfOrder") map {
+        val f: Future[Either[CustomException, BikeStatus]] = statusRepository.getStatusById(3) map {
           case Right(data) =>
             data match {
               case Some(s) => Right(s)
@@ -394,7 +394,7 @@ class BikeController @Inject()(cc: ControllerComponents, bikeRepository: BikeRep
         }
 
         status <- {
-          val f: Future[Either[CustomException, BikeStatus]] = statusRepository.getStatusByText("Available") map {
+          val f: Future[Either[CustomException, BikeStatus]] = statusRepository.getStatusById(1) map {
             case Right(data) =>
               data match {
                 case Some(status) => Right(status)
@@ -406,7 +406,7 @@ class BikeController @Inject()(cc: ControllerComponents, bikeRepository: BikeRep
         }
 
         outOfOrder <- {
-          val f: Future[Either[CustomException, BikeStatus]] = statusRepository.getStatusByText("OutOfOrder") map {
+          val f: Future[Either[CustomException, BikeStatus]] = statusRepository.getStatusById(3) map {
             case Right(data) =>
               data match {
                 case Some(status) => Right(status)

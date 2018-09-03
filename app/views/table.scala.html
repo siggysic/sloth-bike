@@ -1,9 +1,9 @@
 @(headers: Seq[String], rows: Seq[(Call, Seq[Any])])(implicit assetsFinder: AssetsFinder)
 
 <div class="table-responsive">
-  <table id="table-clickable" class="table table-hover table-dark">
+  <table id="table-clickable" class="table table-hover table-dark table-bordered">
     <thead>
-      <tr>
+      <tr class="bg-primary">
         @headers.map{ h =>
           <th scope="col">@h</th>
         }

@@ -71,9 +71,9 @@
   }
 
   <div class="table-responsive">
-    <table id="table-clickable" class="table table-hover table-dark">
+    <table id="table-clickable" class="table table-hover table-dark table-bordered">
       <thead>
-        <tr>
+        <tr class="bg-primary">
         @List("เลขครุภัณฑ์", "Key Barcode", "ป้ายทะเบียน", "RFID", "Status", "Remark", "Go to detail").map{ h =>
           <th scope="col">@h</th>
         }

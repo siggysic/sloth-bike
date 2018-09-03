@@ -45,4 +45,11 @@ class BikeStatusRepository @Inject() (protected val dbConfigProvider: DatabaseCo
       case _: Exception => Left(DBException)
     }
   }
+
+  def getStatusById(id: Int): Future[Either[DBException.type, Option[BikeStatus]]] = {
+    val action = bikeStatus.filter(_.id === id).result.headOption
+    db.run(action).map(Right.apply).recover {
+      case _: Exception => Left(DBException)
+    }
+  }
 }
