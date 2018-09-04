@@ -185,13 +185,9 @@ class AssetsController @Inject()(cc: ControllerComponents, bikeRepo: BikeReposit
           validate <- {
             val preBike = data.toBike
             val result = data.statusId match {
-              case 1 => bikeRepo.create(preBike).flatMap {
-                case 1 => (
-                  for {
-                    queryBikes <- bikeRepo.getBikesRelational(BikeQuery(None, pageSize.page, pageSize.size)).dbExpToEitherT
-                  } yield Ok(views.html.assets(bikeSearchForm, queryBikes, fields, pageSize, status))
-                ).value
-                case _ => Future.successful(Left(BadRequest(views.html.exception("Database exception."))))
+              case 1 => bikeRepo.create(preBike).map {
+                case 1 => Right(Redirect(routes.AssetsController.viewAssets()))
+                case _ => Left(BadRequest(views.html.exception("Database exception.")))
               }
               case 2 => data.field match {
                 case Some(value) => studentRepository.getStudentById(value).flatMap {
@@ -208,13 +204,9 @@ class AssetsController @Inject()(cc: ControllerComponents, bikeRepo: BikeReposit
                         paymentId = None,
                         statusId = data.statusId
                       )
-                      historyRepository.create(history).flatMap {
-                        case 1 => (
-                          for {
-                            queryBikes <- bikeRepo.getBikesRelational(BikeQuery(None, pageSize.page, pageSize.size)).dbExpToEitherT
-                          } yield Ok(views.html.assets(bikeSearchForm, queryBikes, fields, pageSize, status))
-                        ).value
-                        case _ => Future.successful(Left(BadRequest(views.html.exception("Database exception."))))
+                      historyRepository.create(history).map {
+                        case 1 => Right(Redirect(routes.AssetsController.viewAssets()))
+                        case _ => Left(BadRequest(views.html.exception("Database exception.")))
                       }
                     case _ => Future.successful(Left(BadRequest(views.html.exception("Database exception."))))
                   }
@@ -238,13 +230,9 @@ class AssetsController @Inject()(cc: ControllerComponents, bikeRepo: BikeReposit
                       paymentId = None,
                       statusId = data.statusId
                     )
-                    historyRepository.create(history).flatMap {
-                      case 1 => (
-                        for {
-                          queryBikes <- bikeRepo.getBikesRelational(BikeQuery(None, pageSize.page, pageSize.size)).dbExpToEitherT
-                        } yield Ok(views.html.assets(bikeSearchForm, queryBikes, fields, pageSize, status))
-                      ).value
-                      case _ => Future.successful(Left(BadRequest(views.html.exception("Database exception."))))
+                    historyRepository.create(history).map {
+                      case 1 => Right(Redirect(routes.AssetsController.viewAssets()))
+                      case _ => Left(BadRequest(views.html.exception("Database exception.")))
                     }
                   case _ => Future.successful(Left(BadRequest(views.html.exception("Database exception."))))
                 }
@@ -293,13 +281,9 @@ class AssetsController @Inject()(cc: ControllerComponents, bikeRepo: BikeReposit
           validate <- {
             val preBike = data.toBike
             val result = data.statusId match {
-              case 1 => bikeRepo.update(preBike).flatMap {
-                case 1 => (
-                  for {
-                    queryBikes <- bikeRepo.getBikesRelational(BikeQuery(None, pageSize.page, pageSize.size)).dbExpToEitherT
-                  } yield Ok(views.html.assets(bikeSearchForm, queryBikes, fields, pageSize, status))
-                ).value
-                case _ => Future.successful(Left(BadRequest(views.html.exception("Database exception."))))
+              case 1 => bikeRepo.update(preBike).map {
+                case 1 => Right(Redirect(routes.AssetsController.viewAssets()))
+                case _ => Left(BadRequest(views.html.exception("Database exception.")))
               }
               case 2 => data.field match {
                 case Some(value) => studentRepository.getStudentById(value).flatMap {
@@ -317,19 +301,11 @@ class AssetsController @Inject()(cc: ControllerComponents, bikeRepo: BikeReposit
                           paymentId = None,
                           statusId = data.statusId
                         )
-                        historyRepository.create(history).flatMap {
-                          case 1 => (
-                            for {
-                              queryBikes <- bikeRepo.getBikesRelational(BikeQuery(None, pageSize.page, pageSize.size)).dbExpToEitherT
-                            } yield Ok(views.html.assets(bikeSearchForm, queryBikes, fields, pageSize, status))
-                          ).value
-                          case _ => Future.successful(Left(BadRequest(views.html.exception("Database exception."))))
+                        historyRepository.create(history).map {
+                          case 1 => Right(Redirect(routes.AssetsController.viewAssets()))
+                          case _ => Left(BadRequest(views.html.exception("Database exception.")))
                         }
-                      } else (
-                        for {
-                          queryBikes <- bikeRepo.getBikesRelational(BikeQuery(None, pageSize.page, pageSize.size)).dbExpToEitherT
-                        } yield Ok(views.html.assets(bikeSearchForm, queryBikes, fields, pageSize, status))
-                      ).value
+                      } else Future.successful(Right(Redirect(routes.AssetsController.viewAssets())))
 
                     case _ => Future.successful(Left(BadRequest(views.html.exception("Database exception."))))
                   }
@@ -354,19 +330,11 @@ class AssetsController @Inject()(cc: ControllerComponents, bikeRepo: BikeReposit
                         paymentId = None,
                         statusId = data.statusId
                       )
-                      historyRepository.create(history).flatMap {
-                        case 1 => (
-                          for {
-                            queryBikes <- bikeRepo.getBikesRelational(BikeQuery(None, pageSize.page, pageSize.size)).dbExpToEitherT
-                          } yield Ok(views.html.assets(bikeSearchForm, queryBikes, fields, pageSize, status))
-                        ).value
-                        case _ => Future.successful(Left(BadRequest(views.html.exception("Database exception."))))
+                      historyRepository.create(history).map {
+                        case 1 => Right(Redirect(routes.AssetsController.viewAssets()))
+                        case _ => Left(BadRequest(views.html.exception("Database exception.")))
                       }
-                    } else (
-                      for {
-                        queryBikes <- bikeRepo.getBikesRelational(BikeQuery(None, pageSize.page, pageSize.size)).dbExpToEitherT
-                      } yield Ok(views.html.assets(bikeSearchForm, queryBikes, fields, pageSize, status))
-                    ).value
+                    } else Future.successful(Right(Redirect(routes.AssetsController.viewAssets())))
                   case _ => Future.successful(Left(BadRequest(views.html.exception("Database exception."))))
                 }
                 case None => Future.successful(Left(BadRequest(views.html.assetsEdit(bikeWithFieldForm.fillAndValidate(data).withError(FormError("field", "Remark is required" :: Nil)), fields, status, st))))
@@ -415,13 +383,8 @@ class AssetsController @Inject()(cc: ControllerComponents, bikeRepo: BikeReposit
                 new java.util.Date, row._1(0), data.statusId, data.stationId).toBike)
             }
             bikes.filter(_ == None).size match {
-              case 1 => bikeRepo.createBulk(bikes.flatten.toList).flatMap { _ =>
-                (
-                  for {
-                    bikes <- bikeRepo.getBikesRelational(BikeQuery(None, pageSize.page, pageSize.size)).dbExpToEitherT
-                    status <- bikeStatusRepository.getStatus.dbExpToEitherT
-                  } yield Ok(views.html.assets(bikeSearchForm, bikes, fields, pageSize, status))
-                ).extract
+              case 1 => bikeRepo.createBulk(bikes.flatten.toList).map { _ =>
+                Redirect(routes.AssetsController.viewAssets())
               }
               case _ => Future.successful(BadRequest(views.html.exception("File upload exception.")))
             }
