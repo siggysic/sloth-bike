@@ -19,14 +19,18 @@ class HistoryController @Inject()(cc: ControllerComponents, historyRepository: H
     import models.mappers.HistoryMapper._
     val fine = historyRepository.getLastActionOfStudent(studentId).map {
       case Right(data) =>
-        val result = data.map(_.toQueryClass)
-        val historyId = result.map(_.id).getOrElse("")
-        val borrowedDate = result.flatMap(_.borrowDate)
-        val arrivalDate = borrowedDate.map(_.toLocalDateTime.toLocalDate)
-        val now = java.time.LocalDate.now
-        val diff = java.time.Period.between(arrivalDate.getOrElse(now), now)
-        val fine = Calculate.payment(diff.getDays)
-        Right(FineResult(historyId, fine))
+        data match {
+          case Some(value) =>
+            val result = value.toQueryClass
+            val historyId = result.id
+            val borrowedDate = result.borrowDate
+            val arrivalDate = borrowedDate.map(_.toLocalDateTime.toLocalDate)
+            val now = java.time.LocalDate.now
+            val diff = java.time.Period.between(arrivalDate.getOrElse(now), now)
+            val fine = Calculate.payment(diff.getDays)
+            Right(FineResult(historyId, fine, true))
+          case None => Right(FineResult("", 0, false))
+        }
       case Left(ex) =>
         Left(ex)
     }

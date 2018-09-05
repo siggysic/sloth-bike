@@ -18,4 +18,4 @@ case class HistoryWithStatus(id: String, studentId: Option[String], remark: Opti
                              borrowDate: Option[Timestamp], returnDate: Option[Timestamp],
                              status: BikeStatus)
 
-case class FineResult(historyId: String, fine: Int)
+case class FineResult(historyId: String, fine: Int, isStudentBorrow: Boolean)
