@@ -1,8 +1,10 @@
 package controllers
 
+import java.io.{File, FileOutputStream}
 import java.sql.Timestamp
 import java.util.UUID
 
+import akka.stream.scaladsl.StreamConverters
 import cats.data.EitherT
 import javax.inject.{Inject, _}
 import models._
@@ -17,6 +19,7 @@ import scala.collection.JavaConversions.`deprecated iterableAsScalaIterable`
 import scala.collection.convert.ImplicitConversions.`iterator asScala`
 import scala.concurrent.{ExecutionContext, Future}
 import cats.implicits._
+import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import utils.Helpers.EitherHelper.{CatchDatabaseExp, ExtractEitherT}
 
 
@@ -410,6 +413,7 @@ class AssetsController @Inject()(cc: ControllerComponents, bikeRepo: BikeReposit
     val action = formSearch("submit-action")
     action.value match {
       case Some("print-barcode") => printBarCode(formSearch, bikeSearch)
+      case Some("export") => export(formSearch, bikeSearch)
       case _ => searchAssets(formSearch, bikeSearch, page)
     }
   }
@@ -440,6 +444,69 @@ class AssetsController @Inject()(cc: ControllerComponents, bikeRepo: BikeReposit
       for {
         searchResult <- bikeRepo.searchBikes(validateStatusId, BikeQuery(None, pageSize.page, pageSize.size * 100)).dbExpToEitherT
       } yield Ok(views.html.assetsBarcode(formSearch, searchResult, fields))
+    ).extract
+  }
+
+  private def export(formSearch: Form[BikeSearch], bikeSearch: BikeSearch)(implicit request: Request[AnyContent]) = {
+    val columns = List("เลขครุภัณฑ์", "Barcode", "Reference ID", "ป้ายทะเบียน", "Lot number", "Remark", "Detail", "Arrival date", "Status", "Station")
+
+    val validateStatusId: BikeSearch = bikeSearch.statusId match {
+      case Some(v) if v < 0 => bikeSearch.copy(statusId = None)
+      case _ => bikeSearch
+    }
+
+    (
+      for {
+        searchResult <- bikeRepo.searchBikes(validateStatusId, BikeQuery(None, pageSize.page, pageSize.size * 100)).dbExpToEitherT
+      } yield {
+
+        val workbook = new XSSFWorkbook
+        val createHelper = workbook.getCreationHelper
+
+        val sheet = workbook.createSheet("slothbike")
+
+        val headerFont = workbook.createFont
+        headerFont.setBold(true)
+
+        val headerCellStyle = workbook.createCellStyle
+        headerCellStyle.setFont(headerFont)
+
+        val headerRow = sheet.createRow(0)
+
+        columns.zipWithIndex.map { c =>
+          var cell = headerRow.createCell(c._2)
+          cell.setCellValue(c._1)
+          cell.setCellStyle(headerCellStyle)
+        }
+
+        searchResult.zipWithIndex.map { sr =>
+          var row = sheet.createRow(sr._2 + 1)
+
+          row.createCell(0).setCellValue(sr._1._2.pieceNo)
+          row.createCell(1).setCellValue(sr._1._2.keyBarcode.getOrElse(""))
+          row.createCell(2).setCellValue(sr._1._2.referenceId)
+          row.createCell(3).setCellValue(sr._1._2.licensePlate)
+          row.createCell(4).setCellValue(sr._1._2.lotNo)
+          row.createCell(5).setCellValue(sr._1._2.remark.getOrElse(""))
+          row.createCell(6).setCellValue(sr._1._2.detail.getOrElse(""))
+          row.createCell(7).setCellValue(sr._1._2.arrivalDate.toString)
+          row.createCell(8).setCellValue(sr._1._3.status)
+          row.createCell(9).setCellValue(s"${sr._1._4.name}, ${sr._1._4.location}")
+        }
+
+        columns.zipWithIndex.map { c =>
+          sheet.autoSizeColumn(c._2);
+        }
+
+        val tempFile = File.createTempFile(s"slothbike-${new java.util.Date().toString}", ".xlsx", null)
+        val fileOut = new FileOutputStream(tempFile)
+        workbook.write(fileOut)
+        fileOut.close()
+
+        workbook.close()
+
+        Ok.sendFile(tempFile)
+      }
     ).extract
   }
 

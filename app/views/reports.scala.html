@@ -1,0 +1,47 @@
+@()(implicit assetsFinder: AssetsFinder, request: Request[AnyContent])
+
+@main("MU Sloth Bike", assetsFinder) {
+
+<style>
+  .icon-report {
+    font-size: 52px;
+  }
+  .text-center-report {
+    vertical-align: middle;
+  }
+</style>
+
+  <div class="card border-secondary mb-3">
+    <div class="card-header">Report</div>
+    <div class="card-body text-secondary">
+      <div class="row">
+        <div class="col">
+          <button class='btn btn-lg btn-block' style='background-color:transparent;'>
+            <i class="fas fa-bicycle icon-report"></i> <div class="text-center-report">Asset Status Report</div>
+          </button>
+        </div>
+        <div class="col">
+          <button class='btn btn-lg btn-block' style='background-color:transparent;'>
+            <i class="fas fa-clock icon-report"></i> <div class="text-center-report">Time Usage Report</div>
+          </button>
+        </div>
+        <div class="col">
+          <button class='btn btn-lg btn-block' style='background-color:transparent;'>
+            <i class="fas fa-sort-numeric-up icon-report"></i> <div class="text-center-report">Popularity Usage Report</div>
+          </button>
+        </div>
+      </div>
+      <br>
+      <div class="row">
+        <div class="col">
+          <button class='btn btn-lg btn-block' style='background-color:transparent;'>
+            <i class="fas fa-list-ol icon-report"></i> <div class="text-center-report">Number of Usage Report</div>
+          </button>
+        </div>
+        <div class="col"></div>
+        <div class="col"></div>
+      </div>
+    </div>
+  </div>
+
+}
