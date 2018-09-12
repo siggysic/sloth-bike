@@ -39,6 +39,8 @@ GET     /payments                   controllers.PaymentController.getPayments(st
 + nocsrf
 POST    /payments                   controllers.PaymentController.filterPaymentAction
 
+GET     /reports                    controllers.ReportController.viewReport
+
 # API
 GET     /api/history/:id           controllers.api.PaymentController.getPayment(id: String)
 + nocsrf
