@@ -69,11 +69,13 @@ GET     /api/bikes/barcodes/:id     controllers.api.BikeController.getBikesByBar
 GET     /api/bikes/barcodes/:id/borrow controllers.api.BikeController.getBikesByBarcodeId(id: String)
 GET     /api/bikes/barcodes/:id/return controllers.api.BikeController.getReturnBikeByBarcodeId(id: String)
 
-GET     /api/histories              controllers.HistoryController.getHistories
-
 + nocsrf
 POST    /api/bikes/repair           controllers.api.BikeController.sendToRepair
 + nocsrf
 POST    /api/bikes/repair/return    controllers.api.BikeController.repairReturnBike
 
 GET     /api/students/:id           controllers.api.StudentController.getStudentsByStudentId(id: String)
+
+GET     /reports/numberofusage      controllers.HistoryController.viewNumberOfUsageTable(startDate: Option[Long] ?= None, endDate: Option[Long] ?= None,page: Int ?= 1, size: Int ?= 10)
++ nocsrf
+POST    /reports/numberofusage      controllers.HistoryController.filterViewUsageTableAction

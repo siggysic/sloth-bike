@@ -1,7 +1,6 @@
 package repositories
 
 import java.sql.Timestamp
-import java.util.UUID
 
 import javax.inject.{Inject, Singleton}
 import models.{DBException, _}
@@ -148,7 +147,7 @@ class HistoryRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
     } yield (total, query)
 
     db.run(action.result).map(Right.apply).recover {
-      case _: Exception => Left(DBException)
+      case _: Exception => Left(models.DBException)
     }
   }
 
@@ -161,7 +160,7 @@ class HistoryRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
           .result.headOption
 
     db.run(action).map(Right.apply).recover {
-      case _: Exception => Left(DBException)
+      case _: Exception => Left(models.DBException)
     }
   }
 
@@ -174,7 +173,7 @@ class HistoryRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
         .result.headOption
 
     db.run(action).map(Right.apply).recover {
-      case _: Exception => Left(DBException)
+      case _: Exception => Left(models.DBException)
     }
   }
 
@@ -182,7 +181,38 @@ class HistoryRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
     val returnDate = new Timestamp(System.currentTimeMillis())
     val action = history.filter(_.id === historyId).map(h => (h.returnDate, h.paymentId)).update(Some(returnDate), paymentId)
     db.run(action) map Right.apply recover {
-      case _: Exception => Left(DBException)
+      case _: Exception => Left(models.DBException)
+    }
+  }
+
+  def getBorrowStatistic(query: BorrowStatisticTableQuery) = {
+    val filterStart = query.startDate.map(d => history.filter(_.borrowDate >= d)).getOrElse(history)
+    val filterEnd = query.startDate.map(d => filterStart.filter(_.borrowDate <= d)).getOrElse(filterStart)
+    val baseAction = filterEnd
+      .filter(h => h.statusId === 2 && h.studentId.isDefined)
+      .groupBy(h => h.studentId)
+      .map {
+        case (stu, group) =>
+          (stu.get, group.map(_.id).length)
+      }
+      .groupBy(h => h._2)
+      .map {
+        case (borrowTime, group) =>
+          (borrowTime, group.map(_._1).length)
+      }
+
+    val total = baseAction.drop(0).length.result
+    val action =
+      baseAction
+        .sortBy(_._1)
+        .drop((query.pageSize.page - 1) * query.pageSize.size)
+        .take(query.pageSize.size)
+        .result
+
+    db.run(action).flatMap(r =>
+      db.run(total).map(t => (t, r))
+    ).map(Right.apply) recover {
+      case _: Exception => Left(models.DBException)
     }
   }
 }
