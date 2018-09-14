@@ -24,12 +24,10 @@ var myChart = new Chart(ctx, {
             align: 'center',
             display: false
         },
-        scales: {
-            legend: { display: false },
-            title: {
-              display: true,
-              text: 'กราฟแสดงระยะการใช้งานของนักศึกษา (ชม.)'
-            }
+        title: {
+          display: true,
+          text: 'กราฟแสดงระยะการใช้งานของนักศึกษา (ชม.)'
         }
+
     }
 });

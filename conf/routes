@@ -87,6 +87,6 @@ GET     /reports/popularity         controllers.HistoryController.viewPopularity
 + nocsrf
 POST    /reports/popularity         controllers.HistoryController.filterViewPopularityAction
 
-GET     /reports/numberofusage      controllers.HistoryController.viewNumberOfUsageTable(startDate: Option[Long] ?= None, endDate: Option[Long] ?= None,page: Int ?= 1, size: Int ?= 10)
+GET     /numberofusage/report       controllers.HistoryController.viewNumberOfUsageTable(startDate: Option[Long] ?= None, endDate: Option[Long] ?= None,page: Int ?= 1, size: Int ?= 10)
 + nocsrf
-POST    /reports/numberofusage      controllers.HistoryController.filterViewUsageTableAction
+POST    /numberofusage/report       controllers.HistoryController.filterViewUsageTableAction
