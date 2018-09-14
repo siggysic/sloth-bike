@@ -20,9 +20,7 @@ $(document).ready(function() {
             success: function(json) {
                 var data = json.data;
                 var borrowDate = timeConverter(data.history.borrowDate)
-                console.log(data.history.borrowDate)
                 var returnDate = timeConverter(data.history.returnDate)
-                                console.log(data.history.returnDate)
 
                 paymentId = data.payment.id
                 $("#paymentModal .modal-body").html(`

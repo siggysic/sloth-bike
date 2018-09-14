@@ -187,7 +187,7 @@ class HistoryRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
 
   def getBorrowStatistic(query: BorrowStatisticTableQuery) = {
     val filterStart = query.startDate.map(d => history.filter(_.borrowDate >= d)).getOrElse(history)
-    val filterEnd = query.startDate.map(d => filterStart.filter(_.borrowDate <= d)).getOrElse(filterStart)
+    val filterEnd = query.endDate.map(d => filterStart.filter(_.borrowDate <= d)).getOrElse(filterStart)
     val baseAction = filterEnd
       .filter(h => h.statusId === 2 && h.studentId.isDefined)
       .groupBy(h => h.studentId)
@@ -212,6 +212,24 @@ class HistoryRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
     db.run(action).flatMap(r =>
       db.run(total).map(t => (t, r))
     ).map(Right.apply) recover {
+      case _: Exception => Left(models.DBException)
+    }
+  }
+
+  def   getAll(startDate: Option[Timestamp] = None, endDate: Option[Timestamp] = None) = {
+    val action =
+      (startDate, endDate) match {
+        case (Some(s), Some(e)) =>
+          history.filter(h => h.borrowDate >= s && h.borrowDate <= e || h.returnDate >= s && h.returnDate <= e)
+        case (Some(s), None) =>
+          history.filter(h => h.borrowDate >= s || h.returnDate >= s)
+        case (None, Some(e))  =>
+          history.filter(h => h.borrowDate <= e || h.returnDate <= e)
+        case _ =>
+          history
+      }
+
+    db.run(action.result).map(Right.apply) recover {
       case _: Exception => Left(models.DBException)
     }
   }

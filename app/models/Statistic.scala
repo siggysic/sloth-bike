@@ -16,3 +16,8 @@ case class BorrowStatisticTableForm(
                                       page: Int,
                                       size: Int
                                     )
+
+case class PopularityForm(
+                           startDate: Option[String],
+                           endDate: Option[String]
+                         )

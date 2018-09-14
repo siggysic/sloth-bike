@@ -6,6 +6,7 @@ import java.util.Date
 
 import javax.inject.Inject
 import models._
+import org.joda.time.{DateTime, Hours}
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.mvc.{Action, AnyContent, Controller, Request}
@@ -23,6 +24,15 @@ class HistoryController @Inject()(historyRepository: HistoryRepository)(implicit
     )
     (BorrowStatisticTableForm.apply)
     (BorrowStatisticTableForm.unapply)
+  )
+
+  val popularityForm: Form[PopularityForm] = Form(
+    mapping(
+      "startDate" -> optional(text),
+      "endDate" -> optional(text)
+    )
+    (PopularityForm.apply)
+    (PopularityForm.unapply)
   )
 
   def viewNumberOfUsageTable(startDate: Option[Long] = None, endDate: Option[Long] = None,page: Int = 1, size: Int = 10) =
@@ -63,7 +73,35 @@ class HistoryController @Inject()(historyRepository: HistoryRepository)(implicit
     }
 
     queryForm.bindFromRequest().fold(failureFn, successFn)
+  }
 
+  def filterViewPopularityAction = Action { implicit request: Request[AnyContent] =>
+
+    val failureFn = { formWithError: Form[PopularityForm] =>
+      val startDate = formWithError.data.get("startDate").flatMap(convertDateToLong)
+      val endDate = formWithError.data.get("endDate").flatMap(convertDateToLong)
+      Redirect(routes.HistoryController.viewPopularityChart(startDate, endDate))
+    }
+
+    val successFn = { query: PopularityForm =>
+      Redirect(routes.HistoryController.viewPopularityChart(
+        query.startDate.flatMap(convertDateToLong),
+        query.endDate.flatMap(convertDateToLong)
+      ))
+    }
+
+    popularityForm.bindFromRequest().fold(failureFn, successFn)
+  }
+
+
+  def viewPopularityChart(startDate: Option[Long] = None, endDate: Option[Long] = None) = Action { implicit request: Request[AnyContent] =>
+    val currentForm = popularityForm.fill(
+      PopularityForm(
+        startDate.map(convertLongtoDateString),
+        endDate.map(convertLongtoDateString))
+    )
+
+    Ok(views.html.popularityChart(currentForm))
   }
 
   def convertDateToLong(str: String) = {

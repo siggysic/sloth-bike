@@ -1,9 +1,13 @@
 package controllers.api
 
+import java.sql.Timestamp
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.concurrent.TimeUnit
 
 import javax.inject.Inject
 import models.{FineResult, Response}
+import org.joda.time.DateTime
 import play.api.mvc.{Action, ControllerComponents}
 import repositories.HistoryRepository
 
@@ -36,6 +40,41 @@ class HistoryController @Inject()(cc: ControllerComponents, historyRepository: H
     }
 
     response(fine)
+  }
+
+  def getPopularityChart(startDate: Option[Long], endDate: Option[Long]) = Action.async {
+    case class DateChartQuery(id: String, hour: Int)
+    case class DateChartResponse(count: Int, range: String)
+    val resp = historyRepository.getAll(startDate.map(new Timestamp(_)), endDate.map(new Timestamp(_))) map {
+      case Right(histories) =>
+        val bor = histories.filter(_.borrowDate.isDefined).map(h => DateChartQuery(h.id, new DateTime(h.borrowDate.get).getHourOfDay))
+        val ret = histories.filter(_.returnDate.isDefined).map(h => DateChartQuery(h.id, new DateTime(h.returnDate.get).getHourOfDay))
+
+        val r = (8 until 21).map { i =>
+          val borCount = bor.count(_.hour == i)
+          val retCount = ret.count(_.hour == i)
+          DateChartResponse(borCount + retCount, s"$i-${i+1}")
+        }
+        Right(r)
+      case Left(ex) =>
+        Left(ex)
+    }
+    response(resp)
+  }
+
+  def convertDateToLong(str: String) = {
+    val dateformat = new SimpleDateFormat("yyyy-mm-dd")
+    if (str.isEmpty) None
+    else {
+      val d = dateformat.parse(str)
+      Some(d.getTime)
+    }
+  }
+
+  def convertLongtoDateString(long: Long) = {
+    val dateformat = new SimpleDateFormat("yyyy-mm-dd")
+    val date = new Date(long)
+    dateformat.format(date)
   }
 
   private def getDateDiff(diff: Long, base: Long, timeUnit: TimeUnit): Long = {

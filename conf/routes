@@ -78,6 +78,11 @@ POST    /api/bikes/repair/return    controllers.api.BikeController.repairReturnB
 
 GET     /api/students/:id           controllers.api.StudentController.getStudentsByStudentId(id: String)
 
+GET     /api/reports/popularity     controllers.api.HistoryController.getPopularityChart(startDate: Option[Long] ?= None, endDate: Option[Long] ?= None)
+GET     /reports/popularity         controllers.HistoryController.viewPopularityChart(startDate: Option[Long] ?= None, endDate: Option[Long] ?= None)
++ nocsrf
+POST    /reports/popularity         controllers.HistoryController.filterViewPopularityAction
+
 GET     /reports/numberofusage      controllers.HistoryController.viewNumberOfUsageTable(startDate: Option[Long] ?= None, endDate: Option[Long] ?= None,page: Int ?= 1, size: Int ?= 10)
 + nocsrf
 POST    /reports/numberofusage      controllers.HistoryController.filterViewUsageTableAction
