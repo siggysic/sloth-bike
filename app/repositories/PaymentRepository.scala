@@ -113,6 +113,35 @@ class PaymentRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
     }
   }
 
+  def getAllFullPayment(studentId: String, studentFirstName: String, studentLastName: String, major: String) = {
+    val action = payment
+      .joinLeft(payment).on(_.id === _.parentId)
+      .joinRight(history).on(_._1.id === _.paymentId)
+      .join(student).on(_._2.studentId === _.id)
+      .filter(_._2.id like s"%$studentId%")
+      .filter(_._2.firstName like s"%$studentFirstName%")
+      .filter(_._2.lastName like s"%$studentLastName%")
+      .filter(_._2.major like s"%$major%")
+      .filter(_._1._2.paymentId.isDefined)
+      .groupBy(p => (p._1._1.map(_._1.id), p._1._2.id, p._2.id, p._2.firstName, p._2.lastName, p._2.major))
+      .map {
+        case (base, group) =>
+          val baseOvertimeFine = group.map(_._1._1.map(_._1.overtimeFine.getOrElse(0))).max.getOrElse(0)
+          val baseDefectFine = group.map(_._1._1.map(_._1.defectFine.getOrElse(0))).max.getOrElse(0)
+          val subOvertimeFine =
+            group.map(p => p._1._1.flatMap(_._2.flatMap(_.overtimeFine).getOrElse(0))).sum.getOrElse(0)
+          val subDefectFine =
+            group.map(p => p._1._1.flatMap(_._2.flatMap(_.defectFine).getOrElse(0))).sum.getOrElse(0)
+
+          (base._1, base._2, base._3, base._4, base._5, base._6, baseOvertimeFine + subOvertimeFine, baseDefectFine + subDefectFine)
+      }
+
+
+    db.run(action.result).map(Right.apply).recover {
+      case _: Exception => Left(DBException)
+    }
+  }
+
   def getPayment(id: String): Future[Option[(History, Option[Payment])]] = {
     val action = history.joinLeft(payment)
       .on(_.paymentId === _.id)

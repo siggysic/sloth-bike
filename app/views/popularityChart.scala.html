@@ -1,0 +1,47 @@
+@(form: Form[PopularityForm])(implicit assetsFinder: AssetsFinder, request: Request[AnyContent])
+
+
+@main("MU Sloth Bike", assetsFinder) {
+    @helper.form(action = routes.HistoryController.filterViewPopularityAction()) {
+    <div class="card border-secondary mb-3">
+        <div class="card-header">Pop off</div>
+        <div class="card-body text-secondary">
+            <div class="form-row">
+                <div class="form-group col-12">
+                    <div class="row">
+                        <div class="col-1">
+                            <label>Date: </label>
+                        </div>
+                        <div class="col-4">
+                            <input id="startDate" name="startDate" type="date" class="form-control form-control-sm" placeholder="Date" value='@form.data.get("startDate")'>
+                        </div>
+                        -
+                        <div class="col-4">
+                            <input id="endDate" name="endDate" type="date" class="form-control form-control-sm" placeholder="Date" value='@form.data.get("endDate")'>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-8"></div>
+                <div class="form-group col-md-2">
+                    <button type="submit" class="btn btn-success btn-block">Search</button>
+                </div>
+                <div class="form-group col-md-2">
+                    <button type="reset" class="btn btn-danger btn-block">Reset</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    }
+
+    <div class="row">
+        <div class="col">
+            <div class="chart-container">
+                <canvas id="myChart"></canvas>
+            </div>
+        </div>
+    </div>
+}
+<script src="@assetsFinder.path("javascripts/Chart.min.js")"></script>
+<script src="@assetsFinder.path("javascripts/PopularityChart.js")"></script>

@@ -62,57 +62,58 @@
 }
 
 @main("MU Sloth Bike", assetsFinder, scripts) {
-  <div class="card border-secondary mb-3">
-    <div class="card-header">Payment List</div>
-    <div class="card-body text-secondary">
-      <div class="form-row">
-        @helper.form(action = routes.PaymentController.filterPaymentAction()) {
+    @helper.form(action = routes.PaymentController.filterPaymentAction()) {
+    <div class="card border-secondary mb-3">
+      <div class="card-header">Payment List</div>
+      <div class="card-body text-secondary">
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label>รหัสนักศึกษา</label>
+            <input type="text" id="studentId" name="studentId" class="form-control" value='@form.data.get("studentId")' />
+          </div>
+          <div class="form-group col-md-6">
+            <label>ชื่อ - นามสกุล</label>
             <div class="row">
-                <div class="form-group col-md-6">
-                  <label>รหัสนักศึกษา</label>
-                  <input type="text" id="studentId" name="studentId"  class="form-control" value='@form.data.get("studentId")'/>
-                </div>
-                <div class="form-group col-md-6">
-                  <label>ชื่อ - นามสกุล</label>
-                  <div class="row">
-                    <div class="col">
-                      <input type="text" id="firstName" name="firstName" placeholder="ชื่อ" class="form-control" value='@form.data.get("firstName")' />
-                    </div>
-                    -
-                    <div class="col">
-                      <input type="text" id="lastName" name="lastName" placeholder="นามสกุล" class="form-control" value='@form.data.get("lastName")' />
-                    </div>
-                  </div>
-                </div>
-            </div>
-            <div class="row">
-              <div class="form-group col-md-5">
-                <label>คณะ</label>
-                <select id="major" name="major" class="form-control" value='@form.data.get("major")' >
-                    <option value="" selected="selected"></option>
-                    @for(m <- majors) {
-                      @if(m == form.data.get("major").getOrElse("")) {
-                        <option value="@m" selected="selected">@m</option>
-                      } else {
-                        <option value="@m">@m</option>
-                      }
-                    }
-                </select>
+              <div class="col">
+                <input type="text" id="firstName" name="firstName" placeholder="ชื่อ" class="form-control" value='@form.data.get("firstName")' />
+              </div>
+              -
+              <div class="col">
+                <input type="text" id="lastName" name="lastName" placeholder="นามสกุล" class="form-control" value='@form.data.get("lastName")' />
               </div>
             </div>
-          <div class="form-row">
-              <div class="form-group col-md-8"></div>
-              <div class="form-group col-md-2">
-                <button type="submit" class="btn btn-success btn-block">Search</button>
-              </div>
-              <div class="form-group col-md-2">
-                  <a href="/payments" class="btn btn-danger btn-block">Reset</a>
-              </div>
-            </div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-md-5">
+            <label>คณะ</label>
+            <select id="major" name="major" class="form-control" value='@form.data.get("major")'>
+              <option value="" selected="selected"></option>
+              @for(m <- majors) { @if(m==form.data.get("major").getOrElse("")) { <option value="@m" selected="selected">@m</option>
+                } else {
+                <option value="@m">@m</option>
+                }
+                }
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-md-8"></div>
+          <div class="form-group col-md-2">
+            <button type="submit" name="submit-action" value="search" class="btn btn-success btn-block">Search</button>
+          </div>
+          <div class="form-group col-md-2">
+            <a href="/payments" class="btn btn-danger btn-block">Reset</a>
+          </div>
+        </div>
       </div>
-      }
     </div>
-  </div>
+    <div class="form-row">
+      <div class="form-group col-md-2">
+        <button type="submit" name="submit-action" value="export" class="btn btn-warning btn-block">Export</button>
+      </div>
+    </div>
+    }
 
   <div class="table-responsive">
     <table id="paymentTable" class="table  table-hover table-dark table-bordered">
