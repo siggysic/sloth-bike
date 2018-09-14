@@ -44,16 +44,20 @@ class HistoryController @Inject()(cc: ControllerComponents, historyRepository: H
 
   def getPopularityChart(startDate: Option[Long], endDate: Option[Long]) = Action.async {
     case class DateChartQuery(id: String, hour: Int)
-    case class DateChartResponse(count: Int, range: String)
+    case class DateChartResponse(count: Double, range: String)
     val resp = historyRepository.getAll(startDate.map(new Timestamp(_)), endDate.map(new Timestamp(_))) map {
       case Right(histories) =>
         val bor = histories.filter(_.borrowDate.isDefined).map(h => DateChartQuery(h.id, new DateTime(h.borrowDate.get).getHourOfDay))
         val ret = histories.filter(_.returnDate.isDefined).map(h => DateChartQuery(h.id, new DateTime(h.returnDate.get).getHourOfDay))
-
+        val sum = bor.size + ret.size
         val r = (8 until 21).map { i =>
-          val borCount = bor.count(_.hour == i)
-          val retCount = ret.count(_.hour == i)
-          DateChartResponse(borCount + retCount, s"$i-${i+1}")
+          if (sum == 0) DateChartResponse(0, s"$i-${i+1}")
+          else {
+            val borCount = bor.count(_.hour == i)
+            val retCount = ret.count(_.hour == i)
+            val percentage = (borCount + retCount) * 100.0 / (8 until 21).sum
+            DateChartResponse(percentage.round, s"$i-${i+1}")
+          }
         }
         Right(r)
       case Left(ex) =>

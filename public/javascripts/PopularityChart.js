@@ -3,21 +3,37 @@ $(document).ready(function() {
     var myChart;
     getChartData();
 
-    function getUrlVars()
+    function getParameterByName(name, url)
     {
-        var vars = [], hash;
-        var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
-        for(var i = 0; i < hashes.length; i++)
-        {
-            hash = hashes[i].split('=');
-            vars.push(hash[0]);
-            vars[hash[0]] = hash[1];
-        }
-        return vars;
+        if (!url) url = window.location.href;
+        name = name.replace(/[\[\]]/g, '\\$&');
+        var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+            results = regex.exec(url);
+        if (!results) return null;
+        if (!results[2]) return '';
+        return decodeURIComponent(results[2].replace(/\+/g, ' '));
     }
 
     function getChartData() {
-        var params = getUrlVars();
+        var startDate = getParameterByName('startDate');
+        var endDate = getParameterByName('endDate');
+        var params;
+        if (startDate != null && endDate != null) {
+            params = {
+                startDate: startDate,
+                endDate: endDate
+            }
+        } else if (startDate != null && endDate == null) {
+             params = {
+                startDate: startDate
+             }
+        } else if (startDate == null && endDate != null) {
+             params = {
+                endDate: endDate
+             }
+        } else {
+            params = {}
+        }
         $.ajax({
             type: "GET",
             url: '/api/reports/popularity',
