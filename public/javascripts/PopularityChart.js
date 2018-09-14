@@ -40,19 +40,11 @@ $(document).ready(function() {
             data: params,
             success: function(json) {
                 var data = json.data;
-                var colors = ['rgb(211, 14, 14)', 'rgb(44, 155, 0)', 'rgb(252, 237, 25)']
-                var dSet = [];
+                var colors = ['rgb(211, 14, 14)', 'rgb(44, 155, 0)', 'rgb(252, 237, 25)'];
                 var l = [];
                 var da = [];
                 var bgColor = [];
                 data.forEach(function(d, index) {
-                    dSet.push({
-                        label: [d['range']],
-                        data: [d['count']],
-                        backgroundColor: ['rgba(124, 252, 0, 1)'],
-                        borderColor: ['rgba(124, 252, 0, 1)'],
-                        borderWidth: 1
-                    });
                     l.push(d['range']);
                     da.push(d['count']);
                     bgColor.push(colors[index%3]);
@@ -88,6 +80,14 @@ $(document).ready(function() {
                                     beginAtZero: false
                                 }
                             }]
+                        },
+                        tooltips: {
+                            callbacks: {
+                                label: function(tooltipItem, data) {
+                                  var dataset = data['datasets'][0];
+                                  return dataset['data'][tooltipItem['index']] + '%';
+                                }
+                            },
                         }
                     }
                 });
