@@ -1,0 +1,72 @@
+@(form: Form[TimeUsageReport] ,fields: TimeUsageReportField, result: Map[String, Int])(implicit assetsFinder: AssetsFinder, request: Request[AnyContent])
+
+@getValue(field: String) = @{
+  form(field).value.getOrElse("")
+}
+
+@main("MU Sloth Bike", assetsFinder) {
+
+  @helper.form(action = routes.ReportController.searchTimeUsageReport) {
+
+    <style>
+      .chart-container {
+        position: relative;
+        margin: auto;
+        height: 50vh;
+      }
+      canvas{
+        width: 100% !important;
+      }
+    </style>
+
+    <input type="hidden" id="one" value='@result.get("0-3 ชม.").getOrElse(0)'>
+    <input type="hidden" id="two" value='@result.get("3-6 ชม.").getOrElse(0)'>
+    <input type="hidden" id="three" value='@result.get("6-9 ชม.").getOrElse(0)'>
+    <input type="hidden" id="four" value='@result.get("9-24 ชม.").getOrElse(0)'>
+    <input type="hidden" id="five" value='@result.get("24++").getOrElse(0)'>
+
+    <div class="card border-secondary mb-3">
+      <div class="card-header">Time Usage Reports</div>
+      <div class="card-body text-secondary">
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label>วันที่ยืม :</label>
+            <div class="row">
+              <div class="col-md-5">
+                <input name="@fields.startDate" type="date" class="form-control" placeholder="วันที่ยืม" value="@getValue(fields.startDate)">
+              </div>
+              <div class="col-md-1">
+                <input type="text" class="form-control-plaintext" value="-" readonly>
+              </div>
+              <div class="col-md-5">
+                <input name="@fields.endDate" type="date" class="form-control" placeholder="วันที่คืน" value="@getValue(fields.endDate)">
+              </div>
+            </div>
+          </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group col-md-8"></div>
+        <div class="form-group col-md-2">
+          <button type="submit" class="btn btn-success btn-block">Search</button>
+        </div>
+        <div class="form-group col-md-2">
+          <a href="@routes.ReportController.viewTimeUsageReport()" class="btn btn-danger btn-block">Reset</a>
+        </div>
+      </div>
+    </div>
+
+  }
+
+  <div class="row">
+    <div class="col">
+      <div class="chart-container">
+        <canvas id="myChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+
+}
+
+<script src="@assetsFinder.path("javascripts/Chart.min.js")"></script>
+<script src="@assetsFinder.path("javascripts/ChartTimeUsage.js")"></script>

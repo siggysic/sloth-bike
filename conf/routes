@@ -40,6 +40,10 @@ GET     /payments                   controllers.PaymentController.getPayments(st
 POST    /payments                   controllers.PaymentController.filterPaymentAction
 
 GET     /reports                    controllers.ReportController.viewReport
+GET     /assets/status/report       controllers.ReportController.viewAssetReport
+GET     /time/usage/report          controllers.ReportController.viewTimeUsageReport
++ nocsrf
+POST     /time/usage/report         controllers.ReportController.searchTimeUsageReport
 
 # API
 GET     /api/history/:id           controllers.api.PaymentController.getPayment(id: String)

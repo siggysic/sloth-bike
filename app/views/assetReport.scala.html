@@ -1,0 +1,37 @@
+@(graph: GraphLogin)(implicit assetsFinder: AssetsFinder, request: Request[AnyContent])
+
+@main("MU Sloth Bike", assetsFinder) {
+
+  <style>
+    .chart-container {
+      position: relative;
+      margin: auto;
+      height: 50vh;
+    }
+    canvas{
+      width: 100% !important;
+    }
+  </style>
+
+  <input type="hidden" id="available" value="@graph.available">
+  <input type="hidden" id="outOfOrder" value="@graph.outOfOrder">
+  <input type="hidden" id="borrowOneDay" value="@graph.borrowOneDay">
+  <input type="hidden" id="borrowMoreThanOne" value="@graph.borrowMoreThanOne">
+
+  <div class="card border-secondary mb-3">
+    <div class="card-header">Asset Status Report</div>
+    <div class="card-body text-secondary">
+      <div class="row">
+        <div class="col">
+          <div class="chart-container">
+            <canvas id="myChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+}
+
+<script src="@assetsFinder.path("javascripts/Chart.min.js")"></script>
+<script src="@assetsFinder.path("javascripts/ChartAssetReport.js")"></script>

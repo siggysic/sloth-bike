@@ -185,4 +185,18 @@ class HistoryRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
       case _: Exception => Left(DBException)
     }
   }
+
+  def getCompleteHistories: Future[Either[DBException.type, Seq[History]]] = {
+    val action = history.filter(h => h.borrowDate.isDefined && h.returnDate.isDefined && h.statusId === 2).result
+    db.run(action) map Right.apply recover {
+      case _: Exception => Left(DBException)
+    }
+  }
+
+  def getHistoriesByDate(startDate: Timestamp, endDate: Timestamp) = {
+    val action = history.filter(_.borrowDate >= Option.apply(startDate)).filter(_.returnDate <= Option.apply(endDate)).result
+    db.run(action) map Right.apply recover {
+      case _: Exception => Left(DBException)
+    }
+  }
 }
