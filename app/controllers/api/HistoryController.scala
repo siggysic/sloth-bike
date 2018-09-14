@@ -55,7 +55,7 @@ class HistoryController @Inject()(cc: ControllerComponents, historyRepository: H
           else {
             val borCount = bor.count(_.hour == i)
             val retCount = ret.count(_.hour == i)
-            val percentage = (borCount + retCount) * 100.0 / (8 until 21).sum
+            val percentage = (borCount + retCount) * 100.0 / sum
             DateChartResponse(percentage.round, s"$i-${i+1}")
           }
         }
