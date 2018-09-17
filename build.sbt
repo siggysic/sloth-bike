@@ -32,4 +32,6 @@ libraryDependencies += "net.liftweb" %% "lift-json" % "3.3.0"
 
 libraryDependencies += "io.igl" %% "jwt" % "1.2.2"
 
+libraryDependencies += ws
+
 routesImport += "binders.Binders._"

@@ -30,6 +30,11 @@ class StudentRepository @Inject()(protected val dbConfigProvider: DatabaseConfig
 
   private val students = TableQuery[Students]
 
+  def create(student: Student): Future[Int] = {
+    val action = students.insertOrUpdate(student)
+    db.run(action)
+  }
+
   def getStudentById(id: String): Future[Either[DBException.type, Option[Student]]] = {
     val action = students.filter(_.id === id).result.headOption
     db.run(action).map(Right.apply).recover {
