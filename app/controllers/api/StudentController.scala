@@ -33,27 +33,22 @@ class StudentController @Inject()(studentRepository: StudentRepository, ws: WSCl
     val result: Future[Either[CustomException, Student]] = (
       for {
         stu <- {
-          Try {
-            ws.url(s"${config.getString("student.api")}/$id").get().flatMap { ws =>
-              ws.json.validate[Student] match {
-                case JsSuccess(v, _) =>
-                  studentRepository.create(v)
-                  Future.successful(Right(v))
-                case _ =>
-                  studentRepository.getStudentById(id).map {
-                    case Right(None) => Left(NotFoundThaiLangException("นักศึกษา"))
-                    case Right(Some(stu)) => Right(stu)
-                    case Left(other) => Left(other)
+          studentRepository.getStudentById(id).flatMap {
+            case Right(None) =>
+              Try {
+                ws.url(s"${config.getString("student.api")}/$id").get().map { ws =>
+                  ws.json.validate[Student] match {
+                    case JsSuccess(v, _) =>
+                      studentRepository.create(v)
+                      Right(v)
+                    case _ =>
+                      Left(NotFoundThaiLangException("นักศึกษา"))
                   }
-              }
-            }
-          }.getOrElse(
-            studentRepository.getStudentById(id).map {
-              case Right(None) => Left(NotFoundThaiLangException("นักศึกษา"))
-              case Right(Some(stu)) => Right(stu)
-              case Left(other) => Left(other)
-            }
-          ).expToEitherT
+                }
+              }.getOrElse(Future.successful(Left(NotFoundThaiLangException("นักศึกษา"))))
+            case Right(Some(stu)) => Future.successful(Right(stu))
+            case Left(other) => Future.successful(Left(other))
+          }.expToEitherT
         }
       } yield stu
     ).value
