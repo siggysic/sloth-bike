@@ -14,10 +14,15 @@ trait StudentComponent { self: HasDatabaseConfigProvider[JdbcProfile] =>
     def id = column[String]("Id", O.PrimaryKey)
     def firstName = column[String]("FirstName")
     def lastName = column[String]("LastName")
-    def major = column[String]("Major")
-    def profilePicture = column[String]("ProfilePicture")
+    def phone = column[String]("Phone")
+    def major = column[Option[String]]("Major")
+    def `type` = column[String]("Type")
+    def status = column[String]("Status")
+    def address = column[Option[String]]("Address")
+    def department = column[Option[String]]("Department")
+    def profilePicture = column[Option[String]]("ProfilePicture")
 
-    def * = (id, firstName, lastName, major, profilePicture).shaped <> ((Student.apply _).tupled, Student.unapply)
+    def * = (id, firstName, lastName, phone, major, `type`, status, address, department, profilePicture).shaped <> ((Student.apply _).tupled, Student.unapply)
   }
 }
 

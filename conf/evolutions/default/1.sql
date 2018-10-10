@@ -34,10 +34,15 @@ CREATE TABLE bikes (
     );
 
 CREATE TABLE students (
-    Id VARCHAR(12) NOT NULL PRIMARY KEY,
+    Id VARCHAR(255) NOT NULL PRIMARY KEY,
     FirstName VARCHAR(255),
     LastName VARCHAR(255),
+    Phone VARCHAR(255),
     Major VARCHAR(255),
+    Type VARCHAR(255),
+    Status VARCHAR(255),
+    Address VARCHAR(255),
+    Department VARCHAR(255),
     ProfilePicture VARCHAR(255)
 );
 

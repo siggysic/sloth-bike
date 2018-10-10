@@ -4,7 +4,7 @@ import cats.implicits._
 import com.typesafe.config.ConfigFactory
 import javax.inject.Inject
 import models._
-import play.api.libs.json.{JsPath, JsSuccess, Reads}
+import play.api.libs.json._
 import play.api.libs.functional.syntax._
 import play.api.libs.ws
 import play.api.libs.ws.{WSClient, WSResponse}
@@ -25,8 +25,11 @@ class StudentController @Inject()(studentRepository: StudentRepository, ws: WSCl
     (JsPath \ "id").read[String] and
       (JsPath \ "firstName").read[String] and
       (JsPath \ "lastName").read[String] and
-      (JsPath \ "major").read[String] and
-      (JsPath \ "profilePicture").read[String]
+      (JsPath \ "major").readNullable[String] and
+      (JsPath \ "type").read[String] and
+      (JsPath \ "status").read[String] and
+      (JsPath \ "address").readNullable[String] and
+      (JsPath \ "profilePicture").readNullable[String]
     )(Student.apply _)
 
   def getStudentsByStudentId(id: String) = authAsync { implicit request =>

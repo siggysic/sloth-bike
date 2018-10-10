@@ -41,13 +41,13 @@ class PaymentController @Inject()(cc: ControllerComponents, paymentRepository: P
         }
       } yield {
         (payments._1.map(record => FullPayment(record._1.getOrElse(""), record._2, record._3,
-          record._4, record._5, record._6, record._7, record._8)), payments._2, majors )
+          record._4, record._5, record._6.getOrElse(""), record._7, record._8)), payments._2, majors )
       }
 
       val currentForm = queryForm.fill(PaymentQuery(studentId, firstName, lastName, major, page, pageSize))
 
       action.value.map {
-        case Right(ok) => Ok(views.html.payments(ok._1, ok._2, ok._3, currentForm))
+        case Right(ok) => Ok(views.html.payments(ok._1, ok._2, ok._3.flatten, currentForm))
         case Left(_) => InternalServerError("DB Error")
       }
   }
@@ -111,7 +111,7 @@ class PaymentController @Inject()(cc: ControllerComponents, paymentRepository: P
         }
       } yield {
         val searchResult: Seq[FullPayment] = payments.map(record => FullPayment(record._1.getOrElse(""), record._2, record._3,
-          record._4, record._5, record._6, record._7, record._8))
+          record._4, record._5, record._6.getOrElse(""), record._7, record._8))
         val workbook = new XSSFWorkbook
         val createHelper = workbook.getCreationHelper
 
