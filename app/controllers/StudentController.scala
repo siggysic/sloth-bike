@@ -1,5 +1,6 @@
 package controllers
 
+import java.io.{File, PrintWriter}
 import java.nio.file.Paths
 
 import cats.data.EitherT
@@ -11,8 +12,11 @@ import play.api.mvc.MultipartFormData.FilePart
 import play.api.mvc.{AbstractController, AnyContent, ControllerComponents, Request}
 import repositories.{StationRepository, StudentRepository}
 import utils.Helpers.EitherHelper
+
 import scala.concurrent.{ExecutionContext, Future}
 import cats.implicits._
+import play.api.libs.Files.SingletonTemporaryFileCreator
+import play.api.libs.Files.TemporaryFile.temporaryFileToPath
 
 import scala.concurrent.{ExecutionContext, Future}
 import utils.Helpers.EitherHelper.{CatchDatabaseExp, ExtractEitherT}
@@ -65,14 +69,14 @@ class StudentController @Inject()(studentRepository: StudentRepository, stationR
           result <- {
             val resp = reqMul.body match {
               case Some(file) => file.file("profilePicture").map {
-                case FilePart(key, filename, contentType, file) =>
+                case filePart @ FilePart(key, filename, contentType, file) =>
                   studentRepository.getStudentById(student.id).flatMap {
                     case Right(Some(_)) =>
                       Future.successful(Left(BadRequest(views.html.usersInsert(insertUserForm.fillAndValidate(student)
                         .withError(FormError("id", "ID is already exists." :: Nil)), fields))))
                     case Right(None) =>
-                      val newStudent = student.copy(profilePicture = Some(s"$filename-${new java.util.Date().getTime}"))
-                      file.moveTo(Paths.get(s"/public/images/users/${newStudent.profilePicture}"), replace = true)
+                      val newStudent = student.copy(profilePicture = Some(s"${new java.util.Date().getTime}-$filename"))
+                      file.moveTo(Paths.get(s"public/images/users/${newStudent.profilePicture.get}"), replace = true)
                       studentRepository.create(newStudent).map {
                         case 1 => Right(Redirect(routes.AssetsController.viewAssets()))
                         case _ => Left(BadRequest(views.html.exception("Database exception.")))
