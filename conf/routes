@@ -44,8 +44,11 @@ GET     /assets/status/report       controllers.ReportController.viewAssetReport
 GET     /time/usage/report          controllers.ReportController.viewTimeUsageReport
 
 GET     /users/insert               controllers.StudentController.viewInsertUser
+GET     /users/edit/:id             controllers.StudentController.viewEditUser(id: String)
 + nocsrf
 POST    /users/insert               controllers.StudentController.insertUser
++ nocsrf
+POST    /users/edit/:id             controllers.StudentController.editUser(id: String)
 + nocsrf
 POST     /time/usage/report         controllers.ReportController.searchTimeUsageReport
 

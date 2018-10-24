@@ -1,0 +1,164 @@
+@(form: Form[Student], fields: StudentFields)(implicit assetsFinder: AssetsFinder, request: Request[AnyContent])
+
+@validateClass(field: String) = @{
+if(form.errors.find(_.key == field).nonEmpty){"is-invalid"}
+else ""
+}
+
+@getValue(field: String) = @{
+form(field).value.getOrElse("")
+}
+
+@getImageValue(field: String) = @{
+form(field).value.map(v => s"images/users/$v").getOrElse("images/users/user.png")
+}
+
+
+
+@main("MU Sloth Bike", assetsFinder) {
+
+<style>
+  .img-preview {
+    max-width: 100%;
+    max-height: 250px;
+  }
+  .thumbnail {
+      border-radius: 2px;
+  }
+</style>
+
+<div class="card border-dark mb-3">
+  <h5 class="card-header">New User</h5>
+  <div class="card-body">
+    @helper.form(action = routes.StudentController.editUser(getValue(fields.id)), 'enctype -> "multipart/form-data") {
+    <div class="row">
+      <div class="col-md-8">
+        <div class="form-row">
+          <div class="form-group col-md-5">
+            <label>Identify id</label>
+            <input name="@fields.id" type="text" class="form-control" placeholder="Identify id" value="@getValue(fields.id)">
+            @if(form.errors.find(_.key == fields.id).nonEmpty) {
+            <div class="invalid-feedback">
+              @form.errors(fields.id).map(_.message)
+            </div>
+            }
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-md-5">
+            <label>Type</label>
+            <select name="@{fields.`type`}" class="form-control @validateClass(fields.`type`)" value="@getValue(fields.`type`)">
+              @defining(List("Personnel", "Outsider")) { types =>
+              @types.map { typ =>
+              <option value="@typ" @if(typ.toLowerCase == getValue(fields.`type`)){ selected }>@typ</option>
+              }
+              }
+            </select>
+            @if(form.errors.find(_.key == fields.`type`).nonEmpty) {
+            <div class="invalid-feedback">
+              @form.errors(fields.`type`).map(_.message)
+            </div>
+            }
+          </div>
+          <div class="form-group col-md-1"></div>
+          <div class="form-group col-md-5">
+            <label>Status</label>
+            <select name="@fields.status" class="form-control @validateClass(fields.status)" value="@getValue(fields.status)">
+              @defining(List("Active", "Inactive")) { statuss =>
+              @statuss.map { status =>
+              <option value="@status" @if(status.toLowerCase == getValue(fields.status)){ selected }>@status</option>
+              }
+              }
+            </select>
+            @if(form.errors.find(_.key == fields.status).nonEmpty) {
+            <div class="invalid-feedback">
+              @form.errors(fields.status).map(_.message)
+            </div>
+            }
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-md-5">
+            <label>First name</label>
+            <input name="@fields.firstName" type="text" class="form-control @validateClass(fields.firstName)" placeholder="ชื่อจริง" value="@getValue(fields.firstName)">
+            @if(form.errors.find(_.key == fields.firstName).nonEmpty) {
+            <div class="invalid-feedback">
+              @form.errors(fields.firstName).map(_.message)
+            </div>
+            }
+          </div>
+          <div class="form-group col-md-1"></div>
+          <div class="form-group col-md-5">
+            <label>Last name</label>
+            <input name="@fields.lastName" type="text" class="form-control @validateClass(fields.lastName)" placeholder="นามสกุล" value="@getValue(fields.lastName)">
+            @if(form.errors.find(_.key == fields.lastName).nonEmpty) {
+            <div class="invalid-feedback">
+              @form.errors(fields.lastName).map(_.message)
+            </div>
+            }
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="main-img-preview">
+          <img class="thumbnail img-preview" src="@assetsFinder.path(getImageValue(fields.profilePicture))" title="Preview">
+        </div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group col-md-3">
+        <label>Phone</label>
+        <input name="@fields.phone" type="text" class="form-control @validateClass(fields.phone)" placeholder="เบอร์โทรศัพท์" value="@getValue(fields.phone)">
+        @if(form.errors.find(_.key == fields.phone).nonEmpty) {
+        <div class="invalid-feedback">
+          @form.errors(fields.phone).map(_.message)
+        </div>
+        }
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group col-md-6">
+        <label>Address</label>
+        <input name="@fields.address" type="text" class="form-control @validateClass(fields.address)" placeholder="ที่อยู่" value="@getValue(fields.address)">
+        @if(form.errors.find(_.key == fields.address).nonEmpty) {
+        <div class="invalid-feedback">
+          @form.errors(fields.address).map(_.message)
+        </div>
+        }
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group col-md-3">
+        <label>Department</label>
+        <input name="@fields.department" type="text" class="form-control @validateClass(fields.department)" placeholder="แผนก, สาขา" value="@getValue(fields.department)">
+        @if(form.errors.find(_.key == fields.department).nonEmpty) {
+        <div class="invalid-feedback">
+          @form.errors(fields.department).map(_.message)
+        </div>
+        }
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group col-md-4">
+        <label>Picture</label>
+        <input id="logo-id" name="@fields.profilePicture" type="file" class="form-control @validateClass(fields.profilePicture)" placeholder="File" value="@getImageValue(fields.profilePicture)" accept="image/*">
+        @if(form.errors.find(_.key == fields.profilePicture).nonEmpty) {
+        <div class="invalid-feedback">
+          @form.errors(fields.profilePicture).map(_.message)
+        </div>
+        }
+      </div>
+    </div>
+    <input type="hidden" name="temp-picture" value="@getImageValue(fields.profilePicture)">
+    <div class="form-row">
+      <div class="form-group col-md-2">
+        <button type="submit" class="btn btn-primary btn-block">Submit</button>
+      </div>
+      <div class="form-group col-md-2">
+        <a href="@routes.AssetsController.viewAssets()" class="btn btn-danger btn-block">Cancel</a>
+      </div>
+    </div>
+    }
+  </div>
+</div>
+}
