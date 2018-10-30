@@ -135,6 +135,19 @@ class BikeController @Inject()(cc: ControllerComponents, bikeRepository: BikeRep
           EitherT(f)
         }
 
+        validateStudentStatus <- {
+          val f: Future[Either[CustomException, Student]] = studentRepository.getStudentById(req.studentId) map {
+            case Right(data) =>
+              data match {
+                case Some(b) if b.status.toLowerCase == "active" => Right(b)
+                case _ => Left(BadRequestException(s"${req.studentId} สถานะไม่พร้อมใช้งาน"))
+              }
+            case Left(_) => Left(DBException)
+          }
+
+          EitherT(f)
+        }
+
         status <- {
           val f: Future[Either[CustomException, BikeStatus]] = statusRepository.getStatusById(2) map {
             case Right(data) =>

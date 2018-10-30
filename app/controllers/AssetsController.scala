@@ -194,7 +194,7 @@ class AssetsController @Inject()(cc: ControllerComponents, bikeRepo: BikeReposit
               }
               case 2 => data.field match {
                 case Some(value) => studentRepository.getStudentById(value).flatMap {
-                  case Right(Some(student)) => bikeRepo.create(preBike).flatMap {
+                  case Right(Some(student)) if student.status.toLowerCase == "active" => bikeRepo.create(preBike).flatMap {
                     case 1 =>
                       val history = History(
                         id = UUID.randomUUID().toString,
@@ -213,6 +213,8 @@ class AssetsController @Inject()(cc: ControllerComponents, bikeRepo: BikeReposit
                       }
                     case _ => Future.successful(Left(BadRequest(views.html.exception("Database exception."))))
                   }
+                  case Right(Some(_)) =>
+                    Future.successful(Left(BadRequest(views.html.assetsInsert(bikeWithFieldForm.fillAndValidate(data).withError(FormError("field", "Student status is not ready to borrow" :: Nil)), fields, status, st))))
                   case Right(None) =>
                     Future.successful(Left(BadRequest(views.html.assetsInsert(bikeWithFieldForm.fillAndValidate(data).withError(FormError("field", "Student not found" :: Nil)), fields, status, st))))
                   case Left(_) => Future.successful(Left(BadRequest(views.html.exception("Database exception."))))
