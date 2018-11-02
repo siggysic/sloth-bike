@@ -25,10 +25,12 @@ class StudentController @Inject()(studentRepository: StudentRepository, ws: WSCl
     (JsPath \ "id").read[String] and
       (JsPath \ "firstName").read[String] and
       (JsPath \ "lastName").read[String] and
+      (JsPath \ "phone").read[String] and
       (JsPath \ "major").readNullable[String] and
       (JsPath \ "type").read[String] and
       (JsPath \ "status").read[String] and
       (JsPath \ "address").readNullable[String] and
+      (JsPath \ "department").readNullable[String] and
       (JsPath \ "profilePicture").readNullable[String]
     )(Student.apply _)
 

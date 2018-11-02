@@ -8,3 +8,5 @@ target
 /.project
 /.settings
 /RUNNING_PID
+public/images/users/*
+!public/images/users/user.png
