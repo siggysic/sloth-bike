@@ -13,3 +13,9 @@ case class StudentFields(
                           address: String = "address", department: String = "department",
                           profilePicture: String = "profilePicture"
                         )
+
+case class StudentQuery(userId: Option[String],
+                        `type`: Option[String],
+                        name: Option[String],
+                        page: Int,
+                        pageSize: Int = 10)
