@@ -87,7 +87,7 @@ class StudentController @Inject()(studentRepository: StudentRepository, stationR
 
     resp.value map {
       case Right(r) =>
-        Ok(views.html.viewUsers(r._1, r._2, r._3, currentForm))
+        Ok(views.html.viewUsers(r._1, r._3, r._2, currentForm))
       case Left(_) =>
         BadRequest(views.html.exception("Database exception."))
     }

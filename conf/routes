@@ -43,6 +43,10 @@ GET     /reports                    controllers.ReportController.viewReport
 GET     /assets/status/report       controllers.ReportController.viewAssetReport
 GET     /time/usage/report          controllers.ReportController.viewTimeUsageReport
 
+GET     /users                      controllers.StudentController.viewUsers(id: Option[String], name: Option[String] ?= None, `type`: Option[String] ?= None, page: Int ?= 1, pageSize: Int ?= 10)
++ nocsrf
+POST    /users                      controllers.StudentController.filterStudentAction
+
 GET     /users/insert               controllers.StudentController.viewInsertUser
 GET     /users/edit/:id             controllers.StudentController.viewEditUser(id: String)
 + nocsrf
