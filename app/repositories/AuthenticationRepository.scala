@@ -10,7 +10,7 @@ import scala.concurrent.Future
 trait AuthenticationComponent { self: HasDatabaseConfigProvider[JdbcProfile] =>
   import  profile.api._
 
-  class Authentications(tag: Tag) extends Table[Authentication](tag, "students") {
+  class Authentications(tag: Tag) extends Table[Authentication](tag, "Authentications") {
     def id = column[String]("Id", O.PrimaryKey)
     def username = column[String]("Username")
     def password = column[String]("Password")
@@ -30,7 +30,7 @@ class AuthenticationRepository @Inject()(protected val dbConfigProvider: Databas
   private val authen = TableQuery[Authentications]
 
   def login(login: Login): Future[Either[DBException.type, Option[Authentication]]] = {
-    val action = authen.filter(a => a.username === login.username && a.password === login.password)
+    val action = authen.filter(a => a.username === login.username)
 
     db.run(action.result.headOption).map(Right.apply).recover {
       case _: Exception => Left(DBException)

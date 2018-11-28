@@ -16,6 +16,8 @@ import utils.Helpers.EitherHelper
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import java.util.Date
+
+import org.mindrot.jbcrypt.BCrypt
 import utils.Helpers.EitherHelper.{CatchDatabaseExp, ExtractEitherT}
 
 class LoginController @Inject()(cc: ControllerComponents, bikeRepo: BikeRepository,
@@ -82,13 +84,20 @@ class LoginController @Inject()(cc: ControllerComponents, bikeRepo: BikeReposito
     val successFunction = { data: Login =>
       (
         for {
-          login <- authenticationRepository.login(data)
+          login <- authenticationRepository.login(data).dbExpToEitherT
         } yield {
-          Redirect("/assets").withSession(
-            request.session + ("username" -> data.username)
-          )
+          login match {
+            case Some(logged) =>
+              if (BCrypt.checkpw(data.password, logged.password))
+                Redirect("/assets").withSession(
+                  request.session + ("username" -> data.username)
+                )
+              else Redirect("/login")
+            case None =>
+              Redirect("/login")
+          }
         }
-      )
+      ).extract
     }
 
     val formValidationResult: Form[Login] = loginForm.bindFromRequest
