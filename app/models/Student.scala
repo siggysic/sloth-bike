@@ -3,6 +3,16 @@ package models
 case class Student(id: String, firstName: String, lastName: String,
                    phone: String, major: Option[String], `type`: String, status: String,
                    address: Option[String], department: Option[String],
+                   profilePicture: Option[String]) {
+  def toStudentWithFaculty(faculty: Faculty) = StudentWithFaculty(
+    this.id, this.firstName, this.lastName, this.phone, Some(faculty),
+    this.`type`, this.status, this.address, this.department, this.profilePicture
+  )
+}
+
+case class StudentWithFaculty(id: String, firstName: String, lastName: String,
+                   phone: String, major: Option[Faculty], `type`: String, status: String,
+                   address: Option[String], department: Option[String],
                    profilePicture: Option[String])
 
 case class StudentResponse(student: Student)

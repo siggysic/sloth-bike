@@ -83,4 +83,4 @@ case class BikeRepairReturnReq(keyBarcode: String)
 case class BikeBorrowedReq(studentId: String, keyBarcode: String)
 case class BikeRepairReq(keyBarcode: String)
 
-case class BikeReturn(bike: Bike, student: Student, history: History, overtimeDate: String, overtimePayment: Long)
+case class BikeReturn(bike: Bike, student: StudentWithFaculty, history: History, overtimeDate: String, overtimePayment: Long)

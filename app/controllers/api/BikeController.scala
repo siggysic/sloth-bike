@@ -24,7 +24,7 @@ import scala.util.{Failure, Success, Try}
 
 class BikeController @Inject()(cc: ControllerComponents, bikeRepository: BikeRepository, statusRepository: BikeStatusRepository,
                                historyRepository: HistoryRepository, paymentRepository: PaymentRepository,
-                               studentRepository: StudentRepository)
+                               studentRepository: StudentRepository, facultyRepository: FacultyRepository)
                               (implicit ec: ExecutionContext) extends Response {
   import utils.Helpers.JsonHelper._
   import utils.Helpers.Authentication._
@@ -71,12 +71,19 @@ class BikeController @Inject()(cc: ControllerComponents, bikeRepository: BikeRep
           case Right(None) => Left(NotFoundThaiLangException("นักศึกษา"))
           case Left(exp) => Left(exp)
         }.expToEitherT
+
+        faculty <- facultyRepository.getFaculty(Try(student.major.getOrElse("0").toInt).getOrElse(0)).map {
+          case Right(Some(value)) => Right(value)
+          case Right(None) => Right(Faculty(Some(0), "", ""))
+          case Left(exp) => Left(exp)
+        }.expToEitherT
       } yield {
         val arrivalDate = history._1.borrowDate.map(_.toLocalDateTime.toLocalDate)
         val now = java.time.LocalDate.now
         val diff = java.time.Period.between(arrivalDate.getOrElse(now), now)
         val dateString = s"${diff.getYears} ปี ${diff.getMonths} เดือน ${diff.getDays} วัน"
-        BikeReturn(bike, student, history._1, dateString, Calculate.payment(diff.getDays))
+
+        BikeReturn(bike, student.toStudentWithFaculty(faculty), history._1, dateString, Calculate.payment(diff.getDays))
       }
     ).value
 

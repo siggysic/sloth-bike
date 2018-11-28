@@ -1,4 +1,4 @@
-@(form: Form[Student], fields: StudentFields)(implicit assetsFinder: AssetsFinder, request: Request[AnyContent])
+@(form: Form[Student], faculties: Seq[Faculty], fields: StudentFields)(implicit assetsFinder: AssetsFinder, request: Request[AnyContent])
 
 @validateClass(field: String) = @{
 if(form.errors.find(_.key == field).nonEmpty){"is-invalid"}
@@ -47,10 +47,10 @@ form(field).value.map(v => s"images/users/$v").getOrElse("images/users/user.png"
         <div class="form-row">
           <div class="form-group col-md-5">
             <label>Type</label>
-            <select name="@{fields.`type`}" class="form-control @validateClass(fields.`type`)" value="@getValue(fields.`type`)">
+            <select id="switcher" name="@{fields.`type`}" class="form-control @validateClass(fields.`type`)" value="@getValue(fields.`type`)">
               @defining(List("Personnel", "Outsider")) { types =>
               @types.map { typ =>
-              <option value="@typ" @if(typ.toLowerCase == getValue(fields.`type`)){ selected }>@typ</option>
+              <option value="@typ" @if(typ.toLowerCase == getValue(fields.`type`).toLowerCase){ selected }>@typ</option>
               }
               }
             </select>
@@ -127,6 +127,21 @@ form(field).value.map(v => s"images/users/$v").getOrElse("images/users/user.png"
         }
       </div>
     </div>
+    <div class="form-row" id="majorSwitching">
+      <div class="form-group col-md-5">
+        <label>Major / Faculty</label>
+        <select name="@fields.major" class="form-control @validateClass(fields.major)" value="@getValue(fields.major)">
+          @faculties.map { f =>
+          <option value="@f.id" @if(f.id.get.toString == getValue(fields.major)){ selected }>@{f.code} - @{f.name}</option>
+          }
+        </select>
+        @if(form.errors.find(_.key == fields.major).nonEmpty) {
+        <div class="invalid-feedback">
+          @form.errors(fields.major).map(_.message)
+        </div>
+        }
+      </div>
+    </div>
     <div class="form-row">
       <div class="form-group col-md-3">
         <label>Department</label>
@@ -155,7 +170,7 @@ form(field).value.map(v => s"images/users/$v").getOrElse("images/users/user.png"
         <button type="submit" class="btn btn-primary btn-block">Submit</button>
       </div>
       <div class="form-group col-md-2">
-        <a href="@routes.AssetsController.viewAssets()" class="btn btn-danger btn-block">Cancel</a>
+        <a href="@routes.StudentController.viewUsers(None, None, None)" class="btn btn-danger btn-block">Cancel</a>
       </div>
     </div>
     }
