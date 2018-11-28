@@ -11,7 +11,7 @@ trait FacultyComponent { self: HasDatabaseConfigProvider[JdbcProfile] =>
   import profile.api._
   class Faculties(tag: Tag) extends Table[Faculty](tag, "faculties") {
     def id = column[Int]("Id", O.PrimaryKey, O.AutoInc)
-    def code = column[String]("code")
+    def code = column[String]("Code")
     def name = column[String]("Name")
 
     def * = (id.?, code, name).shaped <> ((Faculty.apply _).tupled, Faculty.unapply)
