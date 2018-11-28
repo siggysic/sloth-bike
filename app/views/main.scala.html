@@ -49,8 +49,12 @@
               <li class="nav-item">
                 <a class="nav-link" href="@routes.ReportController.viewReport()">Reports</a>
               </li>
-              <li class="nav-item">
-                <a class="nav-link" href="@routes.ReportController.viewReport()">Users</a>
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="@routes.StudentController.viewUsers(None, None, None)" role="button" aria-haspopup="true" aria-expanded="true" data-target="#userDropdown">Users</a>
+                <div class="dropdown-menu" id="userDropdown">
+                  <a class="dropdown-item" href="@routes.StudentController.viewUsers(None, None, None)">View users</a>
+                  <a class="dropdown-item" href="@routes.StudentController.viewInsertUser()">Insert user</a>
+                </div>
               </li>
             </ul>
             <ul class="navbar-nav ml-auto">

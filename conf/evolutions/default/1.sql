@@ -1,6 +1,6 @@
 # --- !Ups
 
-CREATE TABLE facalties (
+CREATE TABLE faculties (
     Id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     Code VARCHAR(255) NOT NULL,
     Name VARCHAR(255) NOT NULL

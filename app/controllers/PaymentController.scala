@@ -10,14 +10,14 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.mvc._
-import repositories.{PaymentRepository, StudentRepository}
+import repositories.{FacultyRepository, PaymentRepository, StudentRepository}
 import utils.Helpers.EitherHelper.ExtractEitherT
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 
-class PaymentController @Inject()(cc: ControllerComponents, paymentRepository: PaymentRepository, studentRepository: StudentRepository)(implicit assets: AssetsFinder) extends AbstractController(cc) {
+class PaymentController @Inject()(cc: ControllerComponents, paymentRepository: PaymentRepository, studentRepository: StudentRepository, facultyRepository: FacultyRepository)(implicit assets: AssetsFinder) extends AbstractController(cc) {
 
 
   def getPayments
@@ -31,7 +31,7 @@ class PaymentController @Inject()(cc: ControllerComponents, paymentRepository: P
 
       val action = for {
         majors <- {
-          val results = studentRepository.getMajors
+          val results = facultyRepository.getFaculties
           EitherT(results)
         }
 
@@ -41,13 +41,13 @@ class PaymentController @Inject()(cc: ControllerComponents, paymentRepository: P
         }
       } yield {
         (payments._1.map(record => FullPayment(record._1.getOrElse(""), record._2, record._3,
-          record._4, record._5, record._6.getOrElse(""), record._7, record._8)), payments._2, majors )
+          record._4, record._5, record._6.getOrElse(""), record._7, record._8)), payments._2, majors)
       }
 
       val currentForm = queryForm.fill(PaymentQuery(studentId, firstName, lastName, major, page, pageSize))
 
       action.value.map {
-        case Right(ok) => Ok(views.html.payments(ok._1, ok._2, ok._3.flatten, currentForm))
+        case Right(ok) => Ok(views.html.payments(ok._1, ok._2, ok._3, currentForm))
         case Left(_) => InternalServerError("DB Error")
       }
   }

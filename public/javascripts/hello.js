@@ -117,3 +117,16 @@ $(document).ready(function() {
 });
 
 
+$(document).ready(function(){
+    var defaultSelected = $("#switcher option:selected").text()
+    if(defaultSelected == "Personnel") $("#majorSwitching").show()
+    else $("#majorSwitching").hide()
+
+    $("#switcher").change(function(){
+        var selected = $("#switcher option:selected").text()
+        console.log(selected)
+        if(selected == "Personnel") $("#majorSwitching").show()
+        else $("#majorSwitching").hide()
+    });
+});
+

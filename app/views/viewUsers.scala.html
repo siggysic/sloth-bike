@@ -129,10 +129,10 @@
         <tr id="@user.id">
           <td>@user.id</td>
           <td>@{user.firstName + " " + user.lastName}</td>
-          <td>@user.`type`</td>
+          <td>@{user.`type`}</td>
           <td>@user.status</td>
           <td>
-            <a href="/@user.id"
+            <a href="@routes.StudentController.viewEditUser(user.id)"
             class="btn btn-primary">Edit</a>
           </td>
         </tr>

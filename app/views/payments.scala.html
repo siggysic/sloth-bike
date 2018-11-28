@@ -1,4 +1,4 @@
-@(payments: Seq[FullPayment], total: Int, majors: Seq[String], form: Form[PaymentQuery])(implicit assetsFinder: AssetsFinder, request: Request[AnyContent])
+@(payments: Seq[FullPayment], total: Int, majors: Seq[Faculty], form: Form[PaymentQuery])(implicit assetsFinder: AssetsFinder, request: Request[AnyContent])
 
 @currentPage(form: Form[PaymentQuery]) = @{
   val pageNo = form.data.get("page").map(_.toInt).getOrElse(1)
@@ -89,9 +89,9 @@
             <label>คณะ</label>
             <select id="major" name="major" class="form-control" value='@form.data.get("major")'>
               <option value="" selected="selected"></option>
-              @for(m <- majors) { @if(m==form.data.get("major").getOrElse("")) { <option value="@m" selected="selected">@m</option>
+              @for(m <- majors) { @if(m.id==form.data.get("major").getOrElse("")) { <option value="@m.id" selected="selected">@{m.code} - @{m.name}</option>
                 } else {
-                <option value="@m">@m</option>
+                <option value="@m.id">@{m.code} - @{m.name}</option>
                 }
                 }
             </select>

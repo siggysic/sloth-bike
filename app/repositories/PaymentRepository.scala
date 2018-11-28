@@ -109,7 +109,7 @@ class PaymentRepository @Inject() (protected val dbConfigProvider: DatabaseConfi
     val total = action.sortBy(_._1).length.result
     val summary = action.drop((page - 1) * pageSize).take(pageSize).result
     db.run(summary).flatMap(s => db.run(total).map(total => (s, total))).map(Right.apply).recover {
-      case _: Exception => Left(DBException)
+      case _: Exception => Left(models.DBException)
     }
   }
 

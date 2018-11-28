@@ -10,7 +10,7 @@ import play.api.data.{Form, FormError}
 import play.api.data.Forms._
 import play.api.mvc.MultipartFormData.FilePart
 import play.api.mvc.{AbstractController, AnyContent, ControllerComponents, Request}
-import repositories.{HistoryRepository, StationRepository, StudentRepository}
+import repositories.{FacultyRepository, HistoryRepository, StationRepository, StudentRepository}
 import utils.Helpers.EitherHelper
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -22,7 +22,10 @@ import scala.concurrent.{ExecutionContext, Future}
 import utils.Helpers.EitherHelper.{CatchDatabaseExp, ExtractEitherT}
 
 @Singleton()
-class StudentController @Inject()(studentRepository: StudentRepository, stationRepository: StationRepository, historyRepository: HistoryRepository, cc: ControllerComponents)(implicit assets: AssetsFinder, ec: ExecutionContext)
+class StudentController @Inject()(
+                                   studentRepository: StudentRepository, stationRepository: StationRepository,
+                                   historyRepository: HistoryRepository, facultyRepository: FacultyRepository,
+                                   cc: ControllerComponents)(implicit assets: AssetsFinder, ec: ExecutionContext)
   extends AbstractController(cc) {
 
   val queryForm: Form[StationQuery] = Form(
@@ -114,7 +117,11 @@ class StudentController @Inject()(studentRepository: StudentRepository, stationR
   }
 
   def viewInsertUser = Action.async { implicit request: Request[AnyContent] =>
-    Future.successful(Ok(views.html.usersInsert(userForm, fields)))
+    (
+      for(
+        faculties <- facultyRepository.getFaculties.dbExpToEitherT
+      )yield Ok(views.html.usersInsert(userForm, faculties, fields))
+    ).extract
   }
 
   def viewEditUser(id: String) = Action.async { implicit request: Request[AnyContent] =>
@@ -133,12 +140,17 @@ class StudentController @Inject()(studentRepository: StudentRepository, stationR
     val reqMul = request.map(s => s.asMultipartFormData)
 
     val errorFunction = { formWithFailure: Form[Student] =>
-      Future.successful(BadRequest(views.html.usersInsert(formWithFailure, fields)))
+      (
+        for(
+          faculties <- facultyRepository.getFaculties.dbExpToEitherT
+        )yield BadRequest(views.html.usersInsert(userForm, faculties, fields))
+      ).extract
     }
 
     val successFunction = { student: Student =>
       (
         for {
+          faculties <- facultyRepository.getFaculties.dbExpToEitherT
           result <- {
             val resp = reqMul.body match {
               case Some(file) if file.file("profilePicture").map(_.filename != "").forall(identity) => file.file("profilePicture").map {
@@ -146,29 +158,35 @@ class StudentController @Inject()(studentRepository: StudentRepository, stationR
                   studentRepository.getStudentById(student.id).flatMap {
                     case Right(Some(_)) =>
                       Future.successful(Left(BadRequest(views.html.usersInsert(userForm.fillAndValidate(student)
-                        .withError(FormError("id", "ID is already exists." :: Nil)), fields))))
+                        .withError(FormError("id", "ID is already exists." :: Nil)), faculties, fields))))
                     case Right(None) if filename != "" =>
                       student.status.toLowerCase match {
                         case "inactive" => historyRepository.getLastActionOfStudent(student.id) flatMap {
                           case Right(data) =>
                             data match {
                               case Some(b) => Future.successful(Left(BadRequest(views.html.usersInsert(userForm.fillAndValidate(student)
-                                .withError(FormError("status", s"${student.id}: is borrowing a bike" :: Nil)), fields))))
+                                .withError(FormError("status", s"${student.id}: is borrowing a bike" :: Nil)), faculties, fields))))
                               case None =>
-                                val newStudent = student.copy(profilePicture = Some(s"${new java.util.Date().getTime}-$filename"))
+                                val newStudent = student.copy(
+                                  profilePicture = Some(s"${new java.util.Date().getTime}-$filename"),
+                                  major = routeType(student.`type`)
+                                )
                                 file.moveTo(Paths.get(s"public/images/users/${newStudent.profilePicture.get}"), replace = true)
                                 studentRepository.create(newStudent).map {
-                                  case 1 => Right(Redirect(routes.AssetsController.viewAssets()))
+                                  case 1 => Right(Redirect(routes.StudentController.viewUsers(None, None, None)))
                                   case _ => Left(BadRequest(views.html.exception("Database exception.")))
                                 }
                             }
                           case Left(_) => Future.successful(Left(BadRequest(views.html.exception("Database exception."))))
                         }
                         case _ =>
-                          val newStudent = student.copy(profilePicture = Some(s"${new java.util.Date().getTime}-$filename"))
+                          val newStudent = student.copy(
+                            profilePicture = Some(s"${new java.util.Date().getTime}-$filename"),
+                            major = routeType(student.`type`)
+                          )
                           file.moveTo(Paths.get(s"public/images/users/${newStudent.profilePicture.get}"), replace = true)
                           studentRepository.create(newStudent).map {
-                            case 1 => Right(Redirect(routes.AssetsController.viewAssets()))
+                            case 1 => Right(Redirect(routes.StudentController.viewUsers(None, None, None)))
                             case _ => Left(BadRequest(views.html.exception("Database exception.")))
                           }
                       }
@@ -182,25 +200,27 @@ class StudentController @Inject()(studentRepository: StudentRepository, stationR
               case _ => studentRepository.getStudentById(student.id).flatMap {
                 case Right(Some(_)) =>
                   Future.successful(Left(BadRequest(views.html.usersInsert(userForm.fillAndValidate(student)
-                    .withError(FormError("id", "ID is already exists." :: Nil)), fields))))
+                    .withError(FormError("id", "ID is already exists." :: Nil)), faculties, fields))))
                 case Right(None) =>
                   student.status.toLowerCase match {
                     case "inactive" => historyRepository.getLastActionOfStudent(student.id) flatMap {
                       case Right(data) =>
                         data match {
                           case Some(b) => Future.successful(Left(BadRequest(views.html.usersInsert(userForm.fillAndValidate(student)
-                            .withError(FormError("status", s"${student.id}: is borrowing a bike" :: Nil)), fields))))
+                            .withError(FormError("status", s"${student.id}: is borrowing a bike" :: Nil)), faculties, fields))))
                           case None =>
-                            studentRepository.create(student).map {
-                              case 1 => Right(Redirect(routes.AssetsController.viewAssets()))
+                            val newStudent = student.copy(major = routeType(student.`type`))
+                            studentRepository.create(newStudent).map {
+                              case 1 => Right(Redirect(routes.StudentController.viewUsers(None, None, None)))
                               case _ => Left(BadRequest(views.html.exception("Database exception.")))
                             }
                         }
                       case Left(_) => Future.successful(Left(BadRequest(views.html.exception("Database exception."))))
                     }
                     case _ =>
-                      studentRepository.create(student).map {
-                        case 1 => Right(Redirect(routes.AssetsController.viewAssets()))
+                      val newStudent = student.copy(major = routeType(student.`type`))
+                      studentRepository.create(newStudent).map {
+                        case 1 => Right(Redirect(routes.StudentController.viewUsers(None, None, None)))
                         case _ => Left(BadRequest(views.html.exception("Database exception.")))
                       }
                   }
@@ -240,24 +260,33 @@ class StudentController @Inject()(studentRepository: StudentRepository, stationR
                       studentRepository.getStudentById(student.id).flatMap {
                         case Right(Some(stu)) if id == student.id =>
                           if(filename == "") {
-                            val newStudent = student.copy(profilePicture = Some(s"${new java.util.Date().getTime}-$filename"))
+                            val newStudent = student.copy(
+                              profilePicture = Some(s"${new java.util.Date().getTime}-$filename"),
+                              major = routeType(student.`type`)
+                            )
                             studentRepository.create(newStudent.copy(profilePicture = stu.profilePicture)).map {
-                              case 1 => Right(Redirect(routes.AssetsController.viewAssets()))
+                              case 1 => Right(Redirect(routes.StudentController.viewUsers(None, None, None)))
                               case _ => Left(BadRequest(views.html.exception("Database exception.")))
                             }
                           } else {
-                            val newStudent = student.copy(profilePicture = Some(s"${new java.util.Date().getTime}-$filename"))
+                            val newStudent = student.copy(
+                              profilePicture = Some(s"${new java.util.Date().getTime}-$filename"),
+                              major = routeType(student.`type`)
+                            )
                             file.moveTo(Paths.get(s"public/images/users/${newStudent.profilePicture.get}"), replace = true)
                             studentRepository.create(newStudent).map {
-                              case 1 => Right(Redirect(routes.AssetsController.viewAssets()))
+                              case 1 => Right(Redirect(routes.StudentController.viewUsers(None, None, None)))
                               case _ => Left(BadRequest(views.html.exception("Database exception.")))
                             }
                           }
                         case Right(None) =>
-                          val newStudent = student.copy(profilePicture = Some(s"${new java.util.Date().getTime}-$filename"))
+                          val newStudent = student.copy(
+                            profilePicture = Some(s"${new java.util.Date().getTime}-$filename"),
+                            major = routeType(student.`type`)
+                          )
                           file.moveTo(Paths.get(s"public/images/users/${newStudent.profilePicture.get}"), replace = true)
                           studentRepository.create(newStudent).map {
-                            case 1 => Right(Redirect(routes.AssetsController.viewAssets()))
+                            case 1 => Right(Redirect(routes.StudentController.viewUsers(None, None, None)))
                             case _ => Left(BadRequest(views.html.exception("Database exception.")))
                           }
                         case _ => Future.successful(Left(BadRequest(views.html.exception("Database exception."))))
@@ -273,13 +302,15 @@ class StudentController @Inject()(studentRepository: StudentRepository, stationR
                 case Right(Some(_)) =>
                   studentRepository.getStudentById(student.id).flatMap {
                     case Right(Some(_)) if id == student.id =>
-                      studentRepository.create(student).map {
-                        case 1 => Right(Redirect(routes.AssetsController.viewAssets()))
+                      val newStudent = student.copy(major = routeType(student.`type`))
+                      studentRepository.create(newStudent).map {
+                        case 1 => Right(Redirect(routes.StudentController.viewUsers(None, None, None)))
                         case _ => Left(BadRequest(views.html.exception("Database exception.")))
                       }
                     case Right(None) =>
-                      studentRepository.create(student).map {
-                        case 1 => Right(Redirect(routes.AssetsController.viewAssets()))
+                      val newStudent = student.copy(major = routeType(student.`type`))
+                      studentRepository.create(newStudent).map {
+                        case 1 => Right(Redirect(routes.StudentController.viewUsers(None, None, None)))
                         case _ => Left(BadRequest(views.html.exception("Database exception.")))
                       }
                     case _ => Future.successful(Left(BadRequest(views.html.exception("Database exception."))))
@@ -298,6 +329,11 @@ class StudentController @Inject()(studentRepository: StudentRepository, stationR
       errorFunction,
       successFunction
     )
+  }
+
+  private def routeType(typ: String): Option[String] = typ.toLowerCase match {
+    case "personnel" => Some(typ)
+    case _ => None
   }
 
 }
