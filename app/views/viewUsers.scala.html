@@ -1,0 +1,164 @@
+@(users: Seq[Student], types: Seq[String], total: Int, form: Form[StudentQuery])(implicit assetsFinder: AssetsFinder, request: Request[AnyContent])
+
+@currentPage(form: Form[StudentQuery]) = @{
+  val pageNo = form.data.get("page").map(_.toInt).getOrElse(1)
+  pageNo match {
+    case p if p >= 1 => p
+    case _ => 1
+  }
+}
+
+@pageSize(form: Form[StudentQuery]) = @{
+  form.data.get("pageSize").map(_.toInt).getOrElse(10) match {
+    case p if p >= 1 => p
+    case _ => 10
+  }
+}
+
+@disabledPrev(form: Form[StudentQuery]) = @{
+  if(currentPage(form) <= 1) {
+    "disabled"
+  } else {
+    ""
+  }
+}
+
+@disabledNext(form: Form[StudentQuery]) = @{
+  if(currentPage(form) >= Math.ceil(total / pageSize(form).toDouble).toInt) {
+   "disabled"
+  } else {
+   ""
+  }
+}
+
+@activePage(page: Int) = @{
+  if(currentPage(form) == page) {
+    "active"
+  } else {
+    ""
+  }
+}
+
+@pageList(total: Int, form: Form[StudentQuery]) = @{
+  val page = currentPage(form)
+  val pageAmount =  Math.ceil(total / pageSize(form).toDouble).toInt
+
+  val list = 1 to pageAmount
+  list.filter(i => i >= page - 3 && i <= page + 3)
+}
+
+@queryParam(form: Form[StudentQuery], page: Int) = @{
+  val studentIdQuery = form.data.get("studentId").map(str => s"studentId=$str")
+  val firstNameQuery = form.data.get("firstName").map(str => s"firstName=$str")
+  val lastNameQuery = form.data.get("lastName").map(str => s"lastName=$str")
+  val majorQuery = form.data.get("major").map(str => s"major=$str")
+  val pageSizeQuery = form.data.get("pageSize").map(str => s"pageSize=$str")
+  val queryString = Seq(studentIdQuery, firstNameQuery, lastNameQuery, majorQuery, pageSizeQuery).flatten.mkString("&") + "&page=" + page.toString
+  queryString
+}
+
+@main("MU Sloth Bike", assetsFinder) {
+    @helper.form(action = routes.StudentController.filterStudentAction()) {
+    <div class="card border-secondary mb-3">
+      <div class="card-header">User List</div>
+      <div class="card-body text-secondary">
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label>รหัสนักศึกษา</label>
+            <input type="text" id="studentId" name="studentId" class="form-control" value='@form.data.get("studentId")' />
+          </div>
+          <div class="form-group col-md-6">
+            <label>ชื่อ - นามสกุล</label>
+            <div class="row">
+              <div class="col">
+                <input type="text" id="firstName" name="firstName" placeholder="ชื่อ" class="form-control" value='@form.data.get("firstName")' />
+              </div>
+              -
+              <div class="col">
+                <input type="text" id="lastName" name="lastName" placeholder="นามสกุล" class="form-control" value='@form.data.get("lastName")' />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-md-5">
+            <label>Type</label>
+            <select id="major" name="major" class="form-control" value='@form.data.get("type")'>
+              <option value="" selected="selected"></option>
+              @for(t <- types) {
+                @if(t == form.data.get("type").getOrElse("")) {
+                  <option value="@t" selected="selected">@t</option>
+                } else {
+                  <option value="@t">@t</option>
+                }
+              }
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group col-md-8"></div>
+          <div class="form-group col-md-2">
+            <button type="submit" name="submit-action" value="search" class="btn btn-success btn-block">Search</button>
+          </div>
+          <div class="form-group col-md-2">
+            <a href="/users" class="btn btn-danger btn-block">Reset</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group col-md-2">
+        <button type="submit" name="submit-action" value="export" class="btn btn-warning btn-block">Export</button>
+      </div>
+    </div>
+    }
+
+  <div class="table-responsive">
+    <table id="userTable" class="table  table-hover table-dark table-bordered">
+      <thead>
+        <tr class="bg-primary">
+          <th>รหัสนักศึกษา</th>
+          <th>ชื่อ-นามสกุล</th>
+          <th>Type</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+      @for(user <- users) {
+        <tr id="@user.id">
+          <td>@user.id</td>
+          <td>@{user.firstName + " " + user.lastName}</td>
+          <td>@user.`type`</td>
+          <td>@user.status</td>
+          <td>
+            <a href="/@user.id"
+            class="btn btn-primary">Edit</a>
+          </td>
+        </tr>
+      }
+      </tbody>
+    </table>
+  </div>
+
+   <nav aria-label="Page navigation example">
+      <ul class="pagination justify-content-center">
+        <li class="page-item @disabledPrev(form)">
+          <a class="page-link" href="/users?@queryParam(form, currentPage(form) - 1)" aria-label="Previous">
+            <span aria-hidden="true">&laquo;</span>
+            <span class="sr-only">Previous</span>
+          </a>
+        </li>
+        @for(i <- pageList(total, form)) {
+          <li class="page-item @activePage(i)"><a class="page-link" href="/users?@queryParam(form, i)">@i</a></li>
+        }
+        <li class="page-item @disabledNext(form)">
+          <a class="page-link" href="/users?@queryParam(form, currentPage(form) + 1)" aria-label="Next">
+            <span aria-hidden="true">&raquo;</span>
+            <span class="sr-only">Next</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+}

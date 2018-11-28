@@ -49,7 +49,69 @@ class StudentController @Inject()(studentRepository: StudentRepository, stationR
     )(Student.apply)(Student.unapply)
   )
 
+  val studentQueryForm: Form[StudentQuery] = Form(
+    mapping(
+      "id" -> optional(text),
+      "name" -> optional(text),
+      "type" -> optional(text),
+      "page" -> default(number(min = 1), 1),
+      "pageSize" -> default(number, 10)
+    )(StudentQuery.apply)(StudentQuery.unapply)
+  )
+
   val fields = StudentFields()
+
+  def viewUsers
+  (id: Option[String], name: Option[String] = None, `type`: Option[String] = None, page: Int = 1, pageSize: Int =10) = Action.async { implicit request: Request[AnyContent] =>
+
+    val actualPage = page match {
+      case p if p >= 1 => p
+      case _ => 1
+    }
+
+    val currentForm = studentQueryForm.fill(StudentQuery(id, name, `type`, actualPage, pageSize))
+
+    val resp = for {
+      respUsers <- {
+        val r = studentRepository.getUsers(StudentQuery(id, name, `type`, actualPage, pageSize))
+        EitherT(r)
+      }
+      typs <- {
+        val r = studentRepository.getType
+        EitherT(r)
+      }
+    } yield {
+      val (total, users) = respUsers
+      (users, total, typs)
+    }
+
+    resp.value map {
+      case Right(r) =>
+        Ok(views.html.viewUsers(r._1, r._3, r._2, currentForm))
+      case Left(_) =>
+        BadRequest(views.html.exception("Database exception."))
+    }
+  }
+
+  def filterStudentAction = Action { implicit request: Request[AnyContent] =>
+
+    val failureFn = { formWithError: Form[StationQuery] =>
+      val id = formWithError.data.get("id")
+      val name = formWithError.data.get("name")
+      val typ = formWithError.data.get("type")
+      val page = formWithError.data.get("page").map(_.toInt).getOrElse(1)
+      val pageSize = formWithError.data.get("pageSize").map(_.toInt).getOrElse(10)
+      Redirect(routes.StudentController.viewUsers(
+        id, name, typ, page, pageSize))
+    }
+
+    val successFn = { query: StationQuery =>
+      Redirect(routes.StationController.viewStations(query.name, query.availableAsset))
+    }
+
+    queryForm.bindFromRequest().fold(failureFn, successFn)
+
+  }
 
   def viewInsertUser = Action.async { implicit request: Request[AnyContent] =>
     Future.successful(Ok(views.html.usersInsert(userForm, fields)))
